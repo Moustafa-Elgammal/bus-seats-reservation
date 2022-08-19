@@ -18,23 +18,26 @@ class TripSeed extends Seeder
      */
     public function run()
     {
+        // seed init cities
         \App\Models\City::factory()->create(['name' => 'Cairo']);
         \App\Models\City::factory()->create(['name' => 'Giza']);
         \App\Models\City::factory()->create(['name' => 'AlFayyum']);
         \App\Models\City::factory()->create(['name' => 'AlMinya']);
         \App\Models\City::factory()->create(['name' => 'Asyut']);
 
+        // create bus
         $bus = Bus::factory()->create([
             'name' => 'Cairo Bus',
         ]);
 
+        // attach a trip to bus
         $trip = Trip::factory()->create([
             'name' => 'Cairo Asyut Trip',
             'bus_id' => $bus->id
         ]);
 
+        // get some or all cities to create the trip route
         $cities = City::all();
-
         foreach ($cities as $key => $city){
             TripsStation::factory()->create([
                 'trip_id' => $trip->id,
@@ -43,6 +46,7 @@ class TripSeed extends Seeder
             ]);
         }
 
+        // generate the trip seats
         TripsSeat::factory($bus->seats_capacity)->create([
             'trip_id' => $trip->id
         ]);
