@@ -6,6 +6,7 @@ use App\Models\Reservations;
 use App\Models\ReservationsStop;
 use App\Services\Reservations\Interfaces\ReservationInterface;
 use App\Services\Seats\TripSeatService;
+use App\Services\Trips\Interfaces\TripServiceInterface;
 use App\Services\Trips\TripService;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +16,7 @@ class ReservationService implements ReservationInterface
     /**
      * @param TripService $tripService
      */
-    public function __construct(protected TripService $tripService){}
+    public function __construct(protected TripServiceInterface $tripService){}
 
     /** generate array of available seats
      * @param $tripId

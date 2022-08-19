@@ -14,6 +14,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
+
+//    return (new \App\Services\Reservations\ReservationService(new \App\Services\Trips\TripService()))
+//        ->bookSeat(2,14,1,2, 1)? "saved" : "failed";
+//
+//
+//
+//    return (new \App\Services\Reservations\ReservationService(new \App\Services\Trips\TripService()))
+//        ->getAvailableSeatsOfTrip(2,2,3);
+
     return view('welcome');
 });
 
