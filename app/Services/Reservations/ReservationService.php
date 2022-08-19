@@ -81,7 +81,7 @@ class ReservationService implements ReservationInterface
 
         // create new reservation
         $reservation = new Reservations();
-        $reservation->user_id = 1; // TODO ::userid Auth
+        $reservation->user_id = $user_id;
         $reservation->seat_id = $seatId;
 
         try {

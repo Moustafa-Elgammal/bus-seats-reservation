@@ -36,7 +36,7 @@ class TripTest extends TestCase
         ]);
 
         // get some or all cities to create the trip route
-        $cities = City::all();
+        $cities = [$from, $in, $to];
         foreach ($cities as $key => $city){
             TripsStation::factory()->create([
                 'trip_id' => $trip->id,

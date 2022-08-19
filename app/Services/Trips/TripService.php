@@ -3,7 +3,6 @@
 namespace App\Services\Trips;
 
 use App\Models\TripsStation;
-use App\Services\Trips\Interfaces\TripReservationFromToValidationInterface;
 use App\Services\Trips\Interfaces\TripServiceInterface;
 
 class TripService implements TripServiceInterface
