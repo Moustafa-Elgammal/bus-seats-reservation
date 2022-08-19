@@ -17,3 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('trip/seats', [\App\Http\Controllers\Api\ReservationsController::class, 'getTripSeats']);
+Route::post('trip/seat/book', [\App\Http\Controllers\Api\ReservationsController::class, 'book_seat']);
