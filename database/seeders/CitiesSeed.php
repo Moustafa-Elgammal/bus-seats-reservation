@@ -14,12 +14,10 @@ class CitiesSeed extends Seeder
      */
     public function run()
     {
-        \App\Models\City::factory()->create([
-            ['Cairo'],
-            ['Giza'],
-            ['AlFayyum'],
-            ['AlMinya'],
-            ['Asyut'],
-        ]);
+        \App\Models\City::factory()->create(['name' => 'Cairo']);
+        \App\Models\City::factory()->create(['name' => 'Giza']);
+        \App\Models\City::factory()->create(['name' => 'AlFayyum']);
+        \App\Models\City::factory()->create(['name' => 'AlMinya']);
+        \App\Models\City::factory()->create(['name' => 'Asyut']);
     }
 }
