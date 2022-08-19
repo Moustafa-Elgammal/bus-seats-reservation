@@ -5,8 +5,8 @@ namespace Database\Seeders;
 use App\Models\Bus;
 use App\Models\City;
 use App\Models\Trip;
+use App\Models\TripsSeat;
 use App\Models\TripsStation;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class TripSeed extends Seeder
@@ -42,6 +42,10 @@ class TripSeed extends Seeder
                 'station_order' => $key
             ]);
         }
+
+        TripsSeat::factory($bus->seats_capacity)->create([
+            'trip_id' => $trip->id
+        ]);
 
     }
 }
