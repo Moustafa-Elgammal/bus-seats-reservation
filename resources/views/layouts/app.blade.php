@@ -24,6 +24,28 @@
                 </div>
             </header>
 
+            @if (\Session::has('success'))
+                <div class="alert alert-success">
+                    <div class="pl-8 bg-green-200">
+                        {!! \Session::get('success') !!}
+                    </div>
+                </div>
+            @endif
+
+            @if (\Session::has('service_errors'))
+                <div class="pl-8">
+                    <div class="pl-8 bg-red-400">
+                        {!! implode(', ', \Session::get('service_errors')) !!}
+                    </div>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="pl-8">
+                    <x-auth-validation-errors class="mb-4" :errors="$errors" />
+                </div>
+            @endif
+
             <!-- Page Content -->
             <main>
                 {{ $slot }}

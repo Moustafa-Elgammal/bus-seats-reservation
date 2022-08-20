@@ -12,7 +12,7 @@
                     Cities
                     <div>
                         <form action="{{route('city.create')}}" method="post">
-                            <input name="name" placeholder="city name" required autofocus>
+                            <input name="name" placeholder="city name"  autofocus>
                             <input type="submit" value="save" class="bg-gray-200 p-2 rounded">
                             @csrf
                         </form>
