@@ -57,7 +57,7 @@ Just Follow the steps
 
 - data seeds (initial trip, but, and auth clients)
     ```
-     vendor/bin/sail artisan
+     vendor/bin/sail artisan db:seed
     ```
 
 
@@ -76,7 +76,12 @@ run
 
 then 
     
-    npm run dev 
+    npm run build
+
+
+### run test
+
+     vendor/bin/sail artisan test
 
 ### Admin Area 
 

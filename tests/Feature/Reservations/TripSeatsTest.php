@@ -7,14 +7,15 @@ use App\Models\City;
 use App\Models\Trip;
 use App\Models\TripsSeat;
 use App\Models\TripsStation;
+use App\Models\User;
 use App\Services\Seats\TripSeatService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class TripSeatsTest extends TestCase
 {
     use RefreshDatabase;
+
     /**
      * A basic feature test example.
      *
@@ -40,7 +41,7 @@ class TripSeatsTest extends TestCase
 
         // get some or all cities to create the trip route
         $cities = City::all();
-        foreach ($cities as $key => $city){
+        foreach ($cities as $key => $city) {
             TripsStation::factory()->create([
                 'trip_id' => $trip->id,
                 'city_id' => $city->id,
@@ -54,7 +55,7 @@ class TripSeatsTest extends TestCase
         ]);
 
         // check colums
-        $needed = ['id','trip_id','city_id','station_order'];
+        $needed = ['id', 'trip_id', 'city_id', 'station_order'];
         $this->assertEquals(TripSeatService::getTripSeats($trip->id)->pluck($needed), $seats->pluck($needed));
     }
 
@@ -78,7 +79,7 @@ class TripSeatsTest extends TestCase
 
         // get some or all cities to create the trip route
         $cities = City::all();
-        foreach ($cities as $key => $city){
+        foreach ($cities as $key => $city) {
             TripsStation::factory()->create([
                 'trip_id' => $trip->id,
                 'city_id' => $city->id,
@@ -91,15 +92,19 @@ class TripSeatsTest extends TestCase
             'trip_id' => $trip->id
         ]);
 
-            $check = (new \App\Services\Reservations\ReservationService(new \App\Services\Trips\TripService()))
-                ->bookSeat($trip->id, $seats[2]->id, $from->id, $to->id, 1);
+        $user = User::factory()->create();
+        $check = (new \App\Services\Reservations\ReservationService(new \App\Services\Trips\TripService()))
+            ->bookSeat($trip->id, $seats[2]->id, $from->id, $to->id, $user->id);
 
-            // reserved seat
-            $this->assertFalse(TripSeatService::checkSeatReservations($seats[2]->id, [$from->id, $in->id]));
+        $this->assertTrue($check);
 
-            // unreserved seat
-            $this->assertTrue(TripSeatService::checkSeatReservations($seats[1]->id, [$from->id, $in->id]));
+        // reserved seat
+        $this->assertFalse(TripSeatService::checkSeatReservations($seats[2]->id, [$from->id, $in->id]));
+
+        // unreserved seat
+        $this->assertTrue(TripSeatService::checkSeatReservations($seats[1]->id, [$from->id, $in->id]));
     }
+
     public function test_check_seat_belong_toTrip()
     {
         // seed init cities
@@ -120,7 +125,7 @@ class TripSeatsTest extends TestCase
 
         // get some or all cities to create the trip route
         $cities = City::all();
-        foreach ($cities as $key => $city){
+        foreach ($cities as $key => $city) {
             TripsStation::factory()->create([
                 'trip_id' => $trip->id,
                 'city_id' => $city->id,

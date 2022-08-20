@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('customers_seats_reservations', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id');
-            $table->integer('seat_id');
+            $table->foreignId('user_id')->references('id')->on('users');
+            $table->foreignId('seat_id')->references('id')->on('trips_seats');
             $table->timestamps();
         });
     }

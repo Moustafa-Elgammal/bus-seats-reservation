@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('trips_stations', function (Blueprint $table) {
             $table->id();
-            $table->integer('trip_id');
-            $table->integer('city_id');
+            $table->foreignId('trip_id')->references('id')->on('trips');
+            $table->foreignId('city_id')->references('id')->on('cities');
             $table->smallInteger('station_order');
             $table->timestamps();
             $table->index(['trip_id', 'city_id']);

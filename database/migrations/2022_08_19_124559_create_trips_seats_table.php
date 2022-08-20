@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('trips_seats', function (Blueprint $table) {
             $table->id();
-            $table->integer('trip_id');
+            $table->foreignId('trip_id')->references('id')->on('trips');
             $table->timestamps();
         });
     }
