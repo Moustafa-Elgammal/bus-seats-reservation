@@ -1,0 +1,120 @@
+{
+	"info": {
+		"_postman_id": "1da46fc3-c7cf-46c2-98a7-eb73cf5fe45f",
+		"name": "robusta",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1046035"
+	},
+	"item": [
+		{
+			"name": "get seat of trip",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIyIiwianRpIjoiYzQ3ZDcwMzY5YzI1YzE0MDQwYTVhZWJkODU3NmYyM2VjZDdiOWVkMzg5MTJiNjMyMmU3OGUwODdmOTU4ZWEyNDU2NGNkZmVjMjk1MGNmODkiLCJpYXQiOjE2NjA5NTA1MjQuNDg0ODU1LCJuYmYiOjE2NjA5NTA1MjQuNDg0ODU5LCJleHAiOjE2OTI0ODY1MjQuNDcyNTYsInN1YiI6IjEiLCJzY29wZXMiOltdfQ.mz33bZ_U_V5dTRt-CRTrzY3ZXZJksHB1FUsWq5Z-4CvjVUln3SNk8RYBZ8TAY2Ajk77qTVFqpnosdWpzN2AnrlCaqbjGoiveNURn8w6M0zHpc8fIeL_NLyPj7RAcjpkJ_u7J4UkVM-Nv9pl9aax5uZ76eaYDINblaefBDM9FYwdmKGaZbdMHphd56SFNo0ApC1dHPLCnOSOoJr3f2O5FXiuaTm-cdFvmLDUIgxC66Vgt7CzbGWeY1o4eGB4w2XAIJZG-cI4s6zhhqULAMSMLEe2SSnkCFsBZSIcCOYrBhayC5wThQYupXsjykMGDurVCou94d8T34aqJPJOCoEkuGzUA0MncQBXNK4jBhgeLKOzrvbzkgIK5ckkmYCjRN03Rqk24FW_LH5HhNQumKSMVvW_jqapjRwkAYD0hu3He0FKgix9ZDlrp4-KCg87KEzS2wb6e3HCot-tEZDbUXSNDvNV5ZJOv-ytO3LQvetWj4NG25PvTf2dn3s4mGax8PSJy9b1SGYIpMa2AAcISsWZBbm77Z_aeAebDowuj6Hjw-4sEX9i1jpj47bbu0zkuv2-tsfZLFfTmEJBl7HZpYHFU0NaH7GqvyXHRG7XG_frZ9oAL3DUnd5yJC0OrEC55zmL_TMQN71KXE2QrCkirKHTKbPFmnowwhaGEzLmOo8Pg_eE",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"trip_id\": 1,\n    \"from_city_id\": 1,\n    \"to_city_id\": 5\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost/api/trip/seats",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"trip",
+						"seats"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "reserve seat",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIyIiwianRpIjoiYzQ3ZDcwMzY5YzI1YzE0MDQwYTVhZWJkODU3NmYyM2VjZDdiOWVkMzg5MTJiNjMyMmU3OGUwODdmOTU4ZWEyNDU2NGNkZmVjMjk1MGNmODkiLCJpYXQiOjE2NjA5NTA1MjQuNDg0ODU1LCJuYmYiOjE2NjA5NTA1MjQuNDg0ODU5LCJleHAiOjE2OTI0ODY1MjQuNDcyNTYsInN1YiI6IjEiLCJzY29wZXMiOltdfQ.mz33bZ_U_V5dTRt-CRTrzY3ZXZJksHB1FUsWq5Z-4CvjVUln3SNk8RYBZ8TAY2Ajk77qTVFqpnosdWpzN2AnrlCaqbjGoiveNURn8w6M0zHpc8fIeL_NLyPj7RAcjpkJ_u7J4UkVM-Nv9pl9aax5uZ76eaYDINblaefBDM9FYwdmKGaZbdMHphd56SFNo0ApC1dHPLCnOSOoJr3f2O5FXiuaTm-cdFvmLDUIgxC66Vgt7CzbGWeY1o4eGB4w2XAIJZG-cI4s6zhhqULAMSMLEe2SSnkCFsBZSIcCOYrBhayC5wThQYupXsjykMGDurVCou94d8T34aqJPJOCoEkuGzUA0MncQBXNK4jBhgeLKOzrvbzkgIK5ckkmYCjRN03Rqk24FW_LH5HhNQumKSMVvW_jqapjRwkAYD0hu3He0FKgix9ZDlrp4-KCg87KEzS2wb6e3HCot-tEZDbUXSNDvNV5ZJOv-ytO3LQvetWj4NG25PvTf2dn3s4mGax8PSJy9b1SGYIpMa2AAcISsWZBbm77Z_aeAebDowuj6Hjw-4sEX9i1jpj47bbu0zkuv2-tsfZLFfTmEJBl7HZpYHFU0NaH7GqvyXHRG7XG_frZ9oAL3DUnd5yJC0OrEC55zmL_TMQN71KXE2QrCkirKHTKbPFmnowwhaGEzLmOo8Pg_eE",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"trip_id\": 1,\n    \"seat_id\":1,\n    \"from_city_id\": 1,\n    \"to_city_id\": 3\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost/api/trip/seat/book",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"trip",
+						"seat",
+						"book"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "generate token",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n        \"grant_type\": \"password\",\n        \"client_id\":  \"2\",\n        \"client_secret\": \"gmQXxhah3ZKUaqIzAx9WAGau3E06FrH9qvKnhwD0\",\n        \"username\": \"admin@admin.com\",\n        \"password\": \"123456\",\n        \"scope\": \"\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost/oauth/token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"oauth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
