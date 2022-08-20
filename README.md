@@ -68,3 +68,13 @@ Now You can Use the Postman Collection to check the apis, find it at:
 path-to-projecct/postman/robusta.postman_collection.json
 ```
   
+
+### Admin Area 
+
+login as admin from <a href="localhost/admin">here</a>
+
+```
+    email:  admin@admin.com
+    password:  123456
+    
+```
