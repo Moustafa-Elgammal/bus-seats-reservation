@@ -13,7 +13,7 @@
                     <div>
                         <form action="{{route('trip.create')}}" method="post">
                             <input name="name" placeholder="Trip name" required autofocus>
-                            <select name="bus_id">
+                            <select name="bus_id" required>
                                 @foreach($buses as $bus)
                                     <option value="{{$bus->id}}">{{$bus->name}}</option>
                                 @endforeach
@@ -41,13 +41,13 @@
 
                             <div class="p-2 ml-8 bg-fuchsia-100">
                             <form action="{{url('trip/station/'.$trip->id)}}" method="post">
-                                <select name="city_id">
+                                <select name="city_id" required>
                                     @foreach($cities as $city)
                                         @continue(in_array($city->id, $exi_cities))
                                         <option value="{{$city->id}}">{{$city->name}}</option>
                                     @endforeach
                                 </select>
-                                <input type="hidden" name="station_order" value="{{$station->station_order ?? 0}}">
+                                <input type="hidden" name="last_order" value="{{$station->station_order ?? 0}}">
                                 <input type="submit" value="save" class="bg-gray-200 p-2 rounded">
                                 @csrf
                             </form>
