@@ -16,6 +16,7 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                 </div>
+                @can('admin')
 
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                     <x-nav-link :href="route('cities')" :active="request()->routeIs('cities')">
@@ -34,6 +35,7 @@
                         {{ __('trips') }}
                     </x-nav-link>
                 </div>
+                @endcan
 
             </div>
 

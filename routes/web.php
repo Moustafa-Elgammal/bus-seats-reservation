@@ -21,7 +21,7 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
 
-Route::middleware(['auth'])->group(function (){
+Route::middleware(['auth','admin'])->group(function (){
   Route::get('cities',  [\App\Http\Controllers\CitiesController::class, 'index'])->name('cities');
     Route::post('city',  [\App\Http\Controllers\CitiesController::class, 'create'])->name('city.create');
 
