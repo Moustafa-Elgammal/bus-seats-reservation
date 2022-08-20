@@ -69,6 +69,15 @@ path-to-projecct/postman/robusta.postman_collection.json
 ```
   
 
+#### frontend dev
+run 
+
+    npm install
+
+then 
+    
+    npm run dev 
+
 ### Admin Area 
 
 login as admin from <a href="localhost/admin">here</a>
