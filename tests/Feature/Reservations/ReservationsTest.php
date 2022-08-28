@@ -57,9 +57,7 @@ class ReservationsTest extends TestCase
         }
 
         // generate the trip seats
-        $seets = TripsSeat::factory($bus->seats_capacity)->create([
-            'trip_id' => $trip->id
-        ]);
+        $seets = $trip->seats;
 
         $this->assertEquals(
             count($this->reservationService->getAvailableSeatsOfTrip($trip->id, $from->id, $to->id)),
@@ -113,9 +111,7 @@ class ReservationsTest extends TestCase
         }
 
         // generate the trip seats
-        $seets = TripsSeat::factory($bus->seats_capacity)->create([
-            'trip_id' => $trip->id
-        ]);
+        $seets = $trip->seats;
 
         // get seats
         //

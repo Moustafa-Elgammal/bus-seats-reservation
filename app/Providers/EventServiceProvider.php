@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Trip;
+use App\Observers\TripObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -28,6 +30,7 @@ class EventServiceProvider extends ServiceProvider
     public function boot()
     {
         //
+        Trip::observe(TripObserver::class);
     }
 
     /**

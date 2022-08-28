@@ -50,9 +50,7 @@ class TripSeatsTest extends TestCase
         }
 
         // generate the trip seats
-        $seats = TripsSeat::factory($bus->seats_capacity)->create([
-            'trip_id' => $trip->id
-        ]);
+        $seats = $trip->seats;
 
         // check colums
         $needed = ['id', 'trip_id', 'city_id', 'station_order'];
