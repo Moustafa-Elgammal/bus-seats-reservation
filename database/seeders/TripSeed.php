@@ -46,10 +46,5 @@ class TripSeed extends Seeder
             ]);
         }
 
-        // generate the trip seats
-        TripsSeat::factory($bus->seats_capacity)->create([
-            'trip_id' => $trip->id
-        ]);
-
     }
 }
