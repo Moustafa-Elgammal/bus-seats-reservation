@@ -1,6 +1,11 @@
 # For more information: https://laravel.com/docs/sail
 version: '3'
 services:
+    composer:
+        image: composer:2.0
+        volumes:
+            - ".:/app"
+        command: [ "composer", "update"]
     laravel.test:
         build:
             context: ./vendor/laravel/sail/runtimes/8.1
@@ -44,6 +49,19 @@ services:
             test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
             retries: 3
             timeout: 5s
+    install_frontend:
+        image: node
+        working_dir: '/app'
+        command: ["npm", "install"]
+        volumes:
+            -   '.:/app'
+    build_frontend:
+        image: node
+        working_dir: '/app'
+        command: ["npm", "run", "build"]
+        volumes:
+            -   '.:/app'
+
 networks:
     sail:
         driver: bridge

@@ -41,7 +41,7 @@ Just Follow the steps
 
 - install laravel package using
     ```
-      composer install
+      docker compose up composer
    ```
 
 - run the containers using
@@ -72,11 +72,11 @@ path-to-projecct/postman/robusta.postman_collection.json
 #### frontend dev
 run 
 
-    npm install
+    docker compose up install_frontend
 
 then 
-    
-    npm run build
+
+    docker compose up build_frontend
 
 
 ### run test
