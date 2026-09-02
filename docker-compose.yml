@@ -12,6 +12,7 @@ services:
             args:
                 WWWGROUP: '${WWWGROUP}'
         image: sail-8.4/app
+        pull_policy: build
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
