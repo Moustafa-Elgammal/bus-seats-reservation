@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Trip;
 use App\Models\TripStation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TripsController extends Controller
 {
@@ -24,12 +25,13 @@ class TripsController extends Controller
 
     public function create(Request $request)
     {
-        $trip = new Trip;
-
-        $trip->name = $request->name;
-        $trip->bus_id = $request->bus_id;
-
-        $trip->save();
+        // wrap the insert + TripObserver seat generation so they commit together
+        DB::transaction(function () use ($request) {
+            $trip = new Trip;
+            $trip->name = $request->name;
+            $trip->bus_id = $request->bus_id;
+            $trip->save();
+        });
 
         return redirect()->back();
     }
