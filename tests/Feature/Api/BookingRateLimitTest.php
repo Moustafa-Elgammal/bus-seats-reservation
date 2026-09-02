@@ -19,12 +19,12 @@ class BookingRateLimitTest extends TestCase
 
         // Requests still count toward the limiter even when validation rejects them.
         for ($i = 0; $i < 3; $i++) {
-            $this->postJson('/api/trip/seat/book', [])
+            $this->postJson('/api/v1/trip/seat/book', [])
                 ->assertStatus(422)
                 ->assertJsonPath('okay', false);
         }
 
-        $this->postJson('/api/trip/seat/book', [])->assertStatus(429);
+        $this->postJson('/api/v1/trip/seat/book', [])->assertStatus(429);
     }
 
     public function test_seats_endpoint_uses_a_separate_limiter()
@@ -37,10 +37,10 @@ class BookingRateLimitTest extends TestCase
         Passport::actingAs(User::factory()->create(), ['*'], 'api');
 
         // Exhaust the booking limiter.
-        $this->postJson('/api/trip/seat/book', [])->assertStatus(422);
-        $this->postJson('/api/trip/seat/book', [])->assertStatus(429);
+        $this->postJson('/api/v1/trip/seat/book', [])->assertStatus(422);
+        $this->postJson('/api/v1/trip/seat/book', [])->assertStatus(429);
 
         // The seats limiter is independent and still lets requests through.
-        $this->getJson('/api/trip/seats')->assertStatus(422);
+        $this->getJson('/api/v1/trip/seats')->assertStatus(422);
     }
 }

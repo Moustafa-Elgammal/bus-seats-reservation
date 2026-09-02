@@ -13,7 +13,7 @@ class UserEndpointTest extends TestCase
 
     public function test_user_endpoint_rejects_guests()
     {
-        $this->getJson('/api/user')->assertStatus(401);
+        $this->getJson('/api/v1/user')->assertStatus(401);
     }
 
     public function test_user_endpoint_returns_the_authenticated_user_via_passport()
@@ -21,7 +21,7 @@ class UserEndpointTest extends TestCase
         $user = User::factory()->create();
         Passport::actingAs($user, ['*'], 'api');
 
-        $this->getJson('/api/user')
+        $this->getJson('/api/v1/user')
             ->assertOk()
             ->assertJsonPath('id', $user->id);
     }

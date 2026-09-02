@@ -7,16 +7,19 @@ use App\Services\Trips\Interfaces\TripServiceInterface;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class GetTripsAvailableSeatsRequest extends FormRequest
 {
     use ApiResponses;
 
+    /**
+     * Authentication is enforced by the route's `auth:api` middleware; checking
+     * Auth::check() here would silently consult the default (web) guard.
+     */
     public function authorize(): bool
     {
-        return Auth::check();
+        return true;
     }
 
     /**

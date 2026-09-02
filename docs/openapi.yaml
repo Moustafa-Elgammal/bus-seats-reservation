@@ -1,0 +1,233 @@
+openapi: 3.0.3
+info:
+  title: Bus Seats Reservation API
+  version: "1.0.0"
+  description: |
+    Consumer API for the bus-seat booking system.
+
+    A trip runs a bus along an ordered list of stations. A leg is identified by a
+    `from_city_id` / `to_city_id` pair and occupies the route cities from the
+    departure stop (inclusive) to the arrival stop (exclusive), which is why the
+    same physical seat can be sold twice on non-overlapping legs of one trip.
+
+    Every response uses the same envelope; see the `Envelope` schema.
+servers:
+  - url: http://localhost/api/v1
+    description: Local (Laravel Sail)
+
+security:
+  - bearerAuth: []
+
+paths:
+  /user:
+    get:
+      summary: The authenticated user
+      operationId: getAuthenticatedUser
+      tags: [Account]
+      responses:
+        "200":
+          description: The token's user. Not wrapped in the envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+
+  /trip/seats:
+    get:
+      summary: List the seats still available on a leg
+      operationId: getTripSeats
+      tags: [Reservations]
+      description: |
+        Returns the ids of the seats that have no reservation overlapping the
+        requested leg. An empty `data` array means the leg is sold out — an
+        invalid leg is reported as `422`, never as an empty list.
+
+        Rate limited to `SEATS_RATE_LIMIT` requests/minute per user (default 60).
+      parameters:
+        - name: trip_id
+          in: query
+          required: true
+          schema: { type: integer, format: int64, example: 1 }
+        - name: from_city_id
+          in: query
+          required: true
+          schema: { type: integer, format: int64, example: 1 }
+        - name: to_city_id
+          in: query
+          required: true
+          schema: { type: integer, format: int64, example: 3 }
+      responses:
+        "200":
+          description: Available seat ids
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { type: integer, format: int64 }
+                        example: [4, 5, 6]
+                      okay: { example: true }
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /trip/seat/book:
+    post:
+      summary: Book one seat for a leg
+      operationId: bookSeat
+      tags: [Reservations]
+      description: |
+        Books `seat_id` for the requested leg. Availability is re-checked inside
+        a transaction that locks the seat row, and a unique `(seat_id, city_id)`
+        index rejects any overlap that slips through a concurrent request, so a
+        lost race is reported as `422` rather than double-selling the seat.
+
+        Rate limited to `BOOKING_RATE_LIMIT` requests/minute per user (default 10).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [trip_id, seat_id, from_city_id, to_city_id]
+              properties:
+                trip_id: { type: integer, format: int64, example: 1 }
+                seat_id:
+                  type: integer
+                  format: int64
+                  description: Must be a seat of `trip_id`.
+                  example: 4
+                from_city_id: { type: integer, format: int64, example: 1 }
+                to_city_id: { type: integer, format: int64, example: 3 }
+      responses:
+        "200":
+          description: Seat booked
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      message: { example: created }
+                      okay: { example: true }
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "422":
+          description: |
+            Validation failed, the leg is not a valid route, the seat does not
+            belong to the trip, or the seat was taken concurrently.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope"
+              examples:
+                unavailable:
+                  summary: Seat no longer free for this leg
+                  value:
+                    data: []
+                    message: can not be created
+                    errors: ["can not be created"]
+                    okay: false
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Passport access token. Obtain one from the password grant at
+        `POST /oauth/token` with `grant_type=password`, the `client_id` /
+        `client_secret` printed by `db:seed`, and the user's `username` /
+        `password`.
+
+  schemas:
+    Envelope:
+      type: object
+      description: Every endpoint under /api/v1 answers with these four keys, in this order.
+      required: [data, message, errors, okay]
+      properties:
+        data:
+          description: The payload; an empty array when there is none.
+          oneOf:
+            - type: array
+            - type: object
+        message:
+          type: string
+          example: ""
+        errors:
+          type: array
+          description: Flat list of human-readable error strings; empty on success.
+          items: { type: string }
+        okay:
+          type: boolean
+          description: Whether the request succeeded.
+
+    User:
+      type: object
+      properties:
+        id: { type: integer, format: int64, example: 1 }
+        name: { type: string, example: admin }
+        email: { type: string, format: email, example: admin@admin.com }
+        user_group:
+          type: integer
+          nullable: true
+          description: "1 = admin; null for regular customers."
+          example: 1
+        email_verified_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+  responses:
+    Unauthenticated:
+      description: Missing or invalid access token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string, example: Unauthenticated. }
+
+    ValidationFailed:
+      description: The request failed validation or describes an impossible leg
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Envelope"
+          examples:
+            badRoute:
+              summary: from and to are not two stops of the route in travel order
+              value:
+                data: []
+                message: Trip data errors
+                errors:
+                  to_city_id:
+                    - from_city_id and to_city_id must be two different stops on the trip route, in travel order.
+                okay: false
+
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string, example: Too Many Attempts. }
+
+tags:
+  - name: Account
+  - name: Reservations

@@ -73,12 +73,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/trip/seats?trip_id=1&from_city_id=1&to_city_id=5",
+					"raw": "{{base_url}}/api/v1/trip/seats?trip_id=1&from_city_id=1&to_city_id=5",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"api",
+						"v1",
 						"trip",
 						"seats"
 					],
@@ -116,12 +117,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/api/trip/seat/book",
+					"raw": "{{base_url}}/api/v1/trip/seat/book",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"api",
+						"v1",
 						"trip",
 						"seat",
 						"book"
