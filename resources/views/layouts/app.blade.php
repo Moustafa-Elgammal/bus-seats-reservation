@@ -8,7 +8,8 @@
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap">
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -18,33 +19,13 @@
             @include('layouts.navigation')
 
             <!-- Page Heading -->
-            <header class="bg-white shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
-                </div>
-            </header>
-
-            @if (\Session::has('success'))
-                <div class="alert alert-success">
-                    <div class="pl-8 bg-green-200">
-                        {!! \Session::get('success') !!}
+            @isset($header)
+                <header class="bg-white shadow">
+                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        {{ $header }}
                     </div>
-                </div>
-            @endif
-
-            @if (\Session::has('service_errors'))
-                <div class="pl-8">
-                    <div class="pl-8 bg-red-400">
-                        {!! implode(', ', \Session::get('service_errors')) !!}
-                    </div>
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="pl-8">
-                    <x-auth-validation-errors class="mb-4" :errors="$errors" />
-                </div>
-            @endif
+                </header>
+            @endisset
 
             <!-- Page Content -->
             <main>
