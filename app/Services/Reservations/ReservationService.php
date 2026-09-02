@@ -4,102 +4,83 @@ namespace App\Services\Reservations;
 
 use App\Models\Reservation;
 use App\Models\ReservationStop;
+use App\Models\TripSeat;
 use App\Services\Reservations\Interfaces\ReservationInterface;
-use App\Services\Seats\TripSeatService;
+use App\Services\Seats\Interfaces\TripSeatServiceInterface;
 use App\Services\Trips\Interfaces\TripServiceInterface;
-use App\Services\Trips\TripService;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class ReservationService implements ReservationInterface
 {
+    public function __construct(
+        protected TripServiceInterface $tripService,
+        protected TripSeatServiceInterface $tripSeatService,
+    ) {}
+
     /**
-     * @param  TripService  $tripService
+     * @return list<int>
      */
-    public function __construct(protected TripServiceInterface $tripService) {}
-
-    /** generate array of available seats
-     */
-    public function getAvailableSeatsOfTrip($tripId, $fromCityId, $toCityId): array
+    public function getAvailableSeatsOfTrip(int $tripId, int $fromCityId, int $toCityId): array
     {
+        $neededStations = $this->tripService->getNeededStopsFromTrip($tripId, $fromCityId, $toCityId);
 
-        // get all trip seats
-        $trip_seats = TripSeatService::getTripSeats($tripId);
-
-        // get the needed stops between from and to cities
-        $needed_stations = $this->tripService->getNeededStopsFromTrip($tripId, $fromCityId, $toCityId);
-
-        // no stop selection no station will be needed
-        if (empty($needed_stations)) {
+        if ($neededStations === []) {
             return [];
         }
 
-        $seats = [];
-        foreach ($trip_seats as $seat) {
-            // check seat for the user route stations
-            if (TripSeatService::checkSeatReservations($seat->id, $needed_stations)) {
-                $seats[] = $seat->id;
-            }
-        }
+        $tripSeatIds = $this->tripSeatService->getTripSeats($tripId)->pluck('id');
 
-        return $seats;
+        $takenSeatIds = ReservationStop::query()
+            ->whereIn('seat_id', $tripSeatIds)
+            ->whereIn('city_id', $neededStations)
+            ->distinct()
+            ->pluck('seat_id');
+
+        return $tripSeatIds->diff($takenSeatIds)->values()->all();
     }
 
-    /** create reservation
-     */
-    public function bookSeat($tripId, $seatId, $fromCityId, $toCityId, $user_id): bool
+    public function bookSeat(int $tripId, int $seatId, int $fromCityId, int $toCityId, int $userId): bool
     {
-        // check seat relation with the selected trip
-        if (! TripSeatService::checkSeatBelognToTrip($seatId, $tripId)) {
+        if (! $this->tripSeatService->checkSeatBelongsToTrip($seatId, $tripId)) {
             return false;
         }
 
-        // get the reservations stop
-        $needed_stops = $this->tripService->getNeededStopsFromTrip($tripId, $fromCityId, $toCityId);
+        $neededStops = $this->tripService->getNeededStopsFromTrip($tripId, $fromCityId, $toCityId);
 
-        // check if this reservation has no stations
-        if (empty($needed_stops)) {
+        if ($neededStops === []) {
             return false;
         }
-
-        // check seat validation
-        if (! TripSeatService::checkSeatReservations($seatId, $needed_stops)) {
-            return false;
-        }
-
-        /*
-         * use transactions when changes in many tables and once may be failed
-         * so you need to rollback
-         */
-        DB::beginTransaction();
-
-        // create new reservation
-        $reservation = new Reservation;
-        $reservation->user_id = $user_id;
-        $reservation->seat_id = $seatId;
 
         try {
+            return DB::transaction(function () use ($seatId, $userId, $neededStops): bool {
+                // Serialise concurrent bookings of this seat; the re-check then
+                // runs against a stable view, and the unique (seat_id, city_id)
+                // index is the final backstop for the first-insert race.
+                TripSeat::query()->whereKey($seatId)->lockForUpdate()->firstOrFail();
 
-            // check database saving
-            if ($reservation->save()) {
-                foreach ($needed_stops as $cityId) {
-                    ReservationStop::create([
-                        'reservation_id' => $reservation->id,
-                        'city_id' => $cityId,
-                    ]);
+                if (! $this->tripSeatService->checkSeatReservations($seatId, $neededStops)) {
+                    return false;
                 }
 
-                DB::commit();
+                $reservation = new Reservation;
+                $reservation->user_id = $userId;
+                $reservation->seat_id = $seatId;
+                $reservation->save();
+
+                $now = now();
+                ReservationStop::query()->insert(array_map(fn (int $cityId): array => [
+                    'reservation_id' => $reservation->id,
+                    'seat_id' => $seatId,
+                    'city_id' => $cityId,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ], $neededStops));
 
                 return true;
-            }
-
-            DB::rollBack();
-
-            return false;
-
-        } catch (\Exception $exception) {
-            DB::rollBack();
-
+            });
+        } catch (QueryException) {
+            // unique(seat_id, city_id) violation => the seat was taken concurrently
             return false;
         }
     }

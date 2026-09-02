@@ -2,11 +2,15 @@
 
 namespace App\Services\Seats\Interfaces;
 
+use App\Models\TripSeat;
+use Illuminate\Database\Eloquent\Collection;
+
 interface TripSeatServiceInterface extends SeatReservationValidationInterface
 {
-    /** get seat of trip
-     * @param $tripId
-     * @return mixed
+    /**
+     * All seats belonging to the given trip.
+     *
+     * @return Collection<int, TripSeat>
      */
-    public static  function getTripSeats($tripId);
+    public function getTripSeats(int $tripId): Collection;
 }

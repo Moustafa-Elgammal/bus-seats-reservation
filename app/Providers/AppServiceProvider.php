@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Services\Reservations\Interfaces\ReservationInterface;
 use App\Services\Reservations\ReservationService;
+use App\Services\Seats\Interfaces\TripSeatServiceInterface;
+use App\Services\Seats\TripSeatService;
 use App\Services\Trips\Interfaces\TripServiceInterface;
 use App\Services\Trips\TripService;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(TripServiceInterface::class, TripService::class);
+        $this->app->bind(TripSeatServiceInterface::class, TripSeatService::class);
         $this->app->bind(ReservationInterface::class, ReservationService::class);
     }
 

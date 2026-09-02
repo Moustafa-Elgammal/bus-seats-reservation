@@ -11,5 +11,5 @@ class ReservationStop extends Model
 
     protected $table = 'reservations_stops';
 
-    protected $fillable = ['reservation_id', 'city_id'];
+    protected $fillable = ['reservation_id', 'seat_id', 'city_id'];
 }

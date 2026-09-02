@@ -5,44 +5,38 @@ namespace App\Services\Seats;
 use App\Models\ReservationStop;
 use App\Models\TripSeat;
 use App\Services\Seats\Interfaces\TripSeatServiceInterface;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class TripSeatService implements TripSeatServiceInterface
 {
-    /** get the seats of trip
-     * @return Builder[]|Collection
+    /**
+     * @return Collection<int, TripSeat>
      */
-    public static function getTripSeats($tripId)
+    public function getTripSeats(int $tripId): Collection
     {
         return TripSeat::query()
-            ->where('trip_id', '=', $tripId)
+            ->where('trip_id', $tripId)
             ->get();
     }
 
-    public static function checkSeatReservations($seatId, $needed_stations): bool
+    /**
+     * True when the seat has no reservation stop on any city of the requested leg.
+     *
+     * @param  list<int>  $neededCities
+     */
+    public function checkSeatReservations(int $seatId, array $neededCities): bool
     {
         return ! ReservationStop::query()
-            ->leftJoin('customers_seats_reservations',
-                'customers_seats_reservations.id', '=', 'reservations_stops.reservation_id')
-            ->where('customers_seats_reservations.seat_id', '=', $seatId)
-            ->whereIn('reservations_stops.city_id', $needed_stations)->count();
+            ->where('seat_id', $seatId)
+            ->whereIn('city_id', $neededCities)
+            ->exists();
     }
 
-    /** check a seat of a trip
-     */
-    public static function checkSeatBelognToTrip($sid, $tid): bool
+    public function checkSeatBelongsToTrip(int $seatId, int $tripId): bool
     {
-        // seat validation
-        if (! $seat = TripSeat::find($sid)) {
-            return false;
-        }
-
-        // seat trip id
-        if ($seat->trip_id == $tid) {
-            return true;
-        }
-
-        return false;
+        return TripSeat::query()
+            ->whereKey($seatId)
+            ->where('trip_id', $tripId)
+            ->exists();
     }
 }
