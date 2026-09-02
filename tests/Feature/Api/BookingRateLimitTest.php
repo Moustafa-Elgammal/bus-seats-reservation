@@ -19,7 +19,9 @@ class BookingRateLimitTest extends TestCase
 
         // Requests still count toward the limiter even when validation rejects them.
         for ($i = 0; $i < 3; $i++) {
-            $this->postJson('/api/trip/seat/book', [])->assertStatus(422);
+            $this->postJson('/api/trip/seat/book', [])
+                ->assertStatus(422)
+                ->assertJsonPath('okay', false);
         }
 
         $this->postJson('/api/trip/seat/book', [])->assertStatus(429);

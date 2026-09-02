@@ -2,49 +2,43 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Concerns\ApiResponses;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BookSeatRequest;
 use App\Http\Requests\GetTripsAvailableSeatsRequest;
 use App\Services\Reservations\Interfaces\ReservationInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class ReservationsController extends Controller
 {
+    use ApiResponses;
+
     public function __construct(private readonly ReservationInterface $reservationService) {}
 
-    public function getTripSeats(GetTripsAvailableSeatsRequest $request)
+    public function getTripSeats(GetTripsAvailableSeatsRequest $request): JsonResponse
     {
-        $trip = (int) $request->trip_id;
-        $from = (int) $request->from_city_id;
-        $to = (int) $request->to_city_id;
+        $seatIds = $this->reservationService->getAvailableSeatsOfTrip(
+            (int) $request->trip_id,
+            (int) $request->from_city_id,
+            (int) $request->to_city_id,
+        );
 
-        $seats_ids = $this->reservationService->getAvailableSeatsOfTrip($trip, $from, $to);
-
-        return response()->json([
-            'data' => $seats_ids,
-            'message' => '',
-            'errors' => [],
-            'okay' => true,
-        ]);
+        return $this->apiOk($seatIds);
     }
 
-    public function bookSeat(BookSeatRequest $request)
+    public function bookSeat(BookSeatRequest $request): JsonResponse
     {
-        $trip = (int) $request->trip_id;
-        $seat = (int) $request->seat_id;
-        $from = (int) $request->from_city_id;
-        $to = (int) $request->to_city_id;
+        $booked = $this->reservationService->bookSeat(
+            (int) $request->trip_id,
+            (int) $request->seat_id,
+            (int) $request->from_city_id,
+            (int) $request->to_city_id,
+            (int) Auth::id(),
+        );
 
-        $check = $this->reservationService->bookSeat($trip, $seat, $from, $to, Auth::id());
-
-        $message = $check ? __('created') : __('can not be created');
-        $status = $check ? 200 : 422;
-
-        return response()->json([
-            'data' => [],
-            'message' => $message,
-            'errors' => $check ? [] : [$message],
-            'okay' => $check,
-        ], $status);
+        return $booked
+            ? $this->apiOk([], __('created'))
+            : $this->apiFail(__('can not be created'), [__('can not be created')]);
     }
 }
