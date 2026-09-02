@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserGroup;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -22,7 +23,6 @@ class User extends Authenticatable implements OAuthenticatable
         'name',
         'email',
         'password',
-        'user_group',
     ];
 
     /**
@@ -45,6 +45,15 @@ class User extends Authenticatable implements OAuthenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'user_group' => UserGroup::class,
         ];
+    }
+
+    /**
+     * Whether this user belongs to the admin group.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->user_group === UserGroup::Admin;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Seeders;
 
+use App\Enums\UserGroup;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +27,8 @@ class AdminSeederTest extends TestCase
 
         $this->assertNotNull($admin);
         $this->assertSame('Root', $admin->name);
-        $this->assertSame(1, (int) $admin->user_group);
+        $this->assertTrue($admin->isAdmin());
+        $this->assertSame(UserGroup::Admin, $admin->user_group);
         $this->assertTrue(Hash::check('s3cret-pass', $admin->password));
         $this->assertDatabaseMissing('users', ['email' => 'admin@admin.com']);
     }

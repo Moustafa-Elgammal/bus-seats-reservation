@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserGroup;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -19,7 +20,7 @@ class DatabaseSeeder extends Seeder
             'name' => config('seeding.admin.name'),
             'email' => config('seeding.admin.email'),
             'password' => config('seeding.admin.password'),
-            'user_group' => 1,
+            'user_group' => UserGroup::Admin,
         ]);
 
         $this->call(TripSeed::class);
