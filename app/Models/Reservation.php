@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Reservations extends Model
+class Reservation extends Model
 {
     use HasFactory;
-    protected $table="customers_seats_reservations";
+
+    protected $table = 'customers_seats_reservations';
 
     public function customer()
     {
@@ -17,6 +18,6 @@ class Reservations extends Model
 
     public function seat()
     {
-        return $this->belongsTo(TripsSeat::class, 'seat_id', 'id');
+        return $this->belongsTo(TripSeat::class, 'seat_id', 'id');
     }
 }

@@ -5,7 +5,7 @@ namespace Tests\Feature\Reservations;
 use App\Models\Bus;
 use App\Models\City;
 use App\Models\Trip;
-use App\Models\TripsStation;
+use App\Models\TripStation;
 use App\Models\User;
 use App\Services\Reservations\ReservationService;
 use App\Services\Trips\TripService;
@@ -51,7 +51,7 @@ class ReservationsTest extends TestCase
         // get some or all cities to create the trip route
         $cities = City::all();
         foreach ($cities as $key => $city) {
-            TripsStation::factory()->create([
+            TripStation::factory()->create([
                 'trip_id' => $trip->id,
                 'city_id' => $city->id,
                 'station_order' => $key,
@@ -103,7 +103,7 @@ class ReservationsTest extends TestCase
         // get some or all cities to create the trip route
         $cities = City::all();
         foreach ($cities as $key => $city) {
-            TripsStation::factory()->create([
+            TripStation::factory()->create([
                 'trip_id' => $trip->id,
                 'city_id' => $city->id,
                 'station_order' => $key,

@@ -14,12 +14,12 @@ class Trip extends Model
 
     public function stations()
     {
-        return $this->hasMany(TripsStation::class, 'trip_id', 'id');
+        return $this->hasMany(TripStation::class, 'trip_id', 'id');
     }
 
     public function seats()
     {
-        return $this->hasMany(TripsSeat::class, 'trip_id', 'id');
+        return $this->hasMany(TripSeat::class, 'trip_id', 'id');
     }
 
     public function bus()
