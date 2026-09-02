@@ -2,35 +2,22 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
 use App\Models\User;
-use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
 
 class AuthServiceProvider extends ServiceProvider
 {
     /**
-     * The model to policy mappings for the application.
-     *
-     * @var array<class-string, class-string>
-     */
-    protected $policies = [
-        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
-    ];
-
-    /**
      * Register any authentication / authorization services.
-     *
-     * @return void
      */
-    public function boot()
+    public function boot(): void
     {
-        $this->registerPolicies();
-        Passport::routes();
+        Gate::define('admin', fn (User $user) => $user->user_group === 1);
 
-        Gate::define('admin', function (User $user) {
-            return $user->user_group === 1;
-        });
+        // The API consumers (see the Postman collection) authenticate with the
+        // OAuth password grant, which Passport 12+ no longer enables by default.
+        Passport::enablePasswordGrant();
     }
 }
