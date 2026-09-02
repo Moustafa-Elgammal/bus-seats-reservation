@@ -17,7 +17,6 @@ class TripSeatService implements TripSeatServiceInterface
     {
         return TripSeat::query()
             ->where('trip_id', '=', $tripId)
-            ->with('reservations')
             ->get();
     }
 

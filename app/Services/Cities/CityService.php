@@ -4,14 +4,14 @@ namespace App\Services\Cities;
 
 use App\Models\City;
 use App\Services\ErrorService;
-use phpDocumentor\Reflection\Types\Collection;
+use Illuminate\Database\Eloquent\Collection;
 
 class CityService
 {
     use ErrorService;
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getAllCities()
     {
@@ -19,25 +19,25 @@ class CityService
     }
 
     /** create city
-     * @param $city_name
-     * @return bool
      */
-    public function create(string $city_name):bool
+    public function create(string $city_name): bool
     {
-        $city = new City();
+        $city = new City;
         $city->name = $city_name;
 
         try {
-            if ($city->save())
+            if ($city->save()) {
                 return true;
+            }
 
-            $this->setError(__("City can not be saved"));
+            $this->setError(__('City can not be saved'));
+
             return false;
 
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
             $this->setError($e->getMessage());
+
             return false;
         }
     }
-
 }
