@@ -2,20 +2,16 @@
 
 namespace Tests\Feature\Reservations;
 
-use App\Models\Bus;
-use App\Models\City;
-use App\Models\Trip;
-use App\Models\TripStation;
 use App\Models\User;
 use App\Services\Reservations\Interfaces\ReservationInterface;
 use App\Services\Seats\Interfaces\TripSeatServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
+use Tests\Concerns\BuildsTrips;
 use Tests\TestCase;
 
 class TripSeatsTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsTrips, RefreshDatabase;
 
     private TripSeatServiceInterface $service;
 
@@ -24,30 +20,6 @@ class TripSeatsTest extends TestCase
         parent::setUp();
 
         $this->service = app(TripSeatServiceInterface::class);
-    }
-
-    /**
-     * Build a trip whose route is the given ordered city names.
-     *
-     * @param  list<string>  $cityNames
-     * @return array{0: Trip, 1: Collection<string, City>}
-     */
-    private function makeTrip(array $cityNames, int $capacity = 12): array
-    {
-        $cities = collect($cityNames)->mapWithKeys(
-            fn (string $name) => [$name => City::factory()->create(['name' => $name])]
-        );
-
-        $bus = Bus::factory()->create(['seats_capacity' => $capacity]);
-        $trip = Trip::factory()->create(['bus_id' => $bus->id]);
-
-        $cities->values()->each(fn (City $city, int $order) => TripStation::factory()->create([
-            'trip_id' => $trip->id,
-            'city_id' => $city->id,
-            'station_order' => $order,
-        ]));
-
-        return [$trip, $cities];
     }
 
     public function test_get_trip_seats_returns_every_seat_of_the_trip()

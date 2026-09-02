@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Trips;
 
-use App\Models\Bus;
 use App\Models\City;
 use App\Models\Trip;
 use App\Models\TripSeat;
@@ -11,11 +10,12 @@ use App\Models\User;
 use App\Services\Reservations\Interfaces\ReservationInterface;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\BuildsTrips;
 use Tests\TestCase;
 
 class SchemaConstraintsTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsTrips, RefreshDatabase;
 
     public function test_a_city_can_appear_only_once_on_a_route()
     {
@@ -51,21 +51,13 @@ class SchemaConstraintsTest extends TestCase
 
     public function test_deleting_a_trip_cascades_to_stations_seats_and_reservations()
     {
-        $bus = Bus::factory()->create(['seats_capacity' => 3]);
-        $trip = Trip::factory()->create(['bus_id' => $bus->id]);
-
-        $cities = City::factory()->count(3)->create();
-        $cities->each(fn (City $city, int $order) => TripStation::create([
-            'trip_id' => $trip->id,
-            'city_id' => $city->id,
-            'station_order' => $order,
-        ]));
+        [$trip, $cities] = $this->makeTrip(capacity: 3);
 
         $booked = app(ReservationInterface::class)->bookSeat(
             $trip->id,
             $trip->seats->first()->id,
-            $cities[0]->id,
-            $cities[2]->id,
+            $cities['Cairo']->id,
+            $cities['Asyut']->id,
             User::factory()->create()->id,
         );
 

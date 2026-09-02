@@ -2,21 +2,17 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\Bus;
-use App\Models\City;
-use App\Models\Trip;
-use App\Models\TripStation;
 use App\Models\User;
 use App\Services\Reservations\Interfaces\ReservationInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
 use Illuminate\Testing\TestResponse;
 use Laravel\Passport\Passport;
+use Tests\Concerns\BuildsTrips;
 use Tests\TestCase;
 
 class ReservationsApiTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsTrips, RefreshDatabase;
 
     private User $user;
 
@@ -26,28 +22,6 @@ class ReservationsApiTest extends TestCase
 
         $this->user = User::factory()->create();
         Passport::actingAs($this->user, ['*'], 'api');
-    }
-
-    /**
-     * @param  list<string>  $cityNames
-     * @return array{0: Trip, 1: Collection<string, City>}
-     */
-    private function makeTrip(array $cityNames, int $capacity = 12): array
-    {
-        $cities = collect($cityNames)->mapWithKeys(
-            fn (string $name) => [$name => City::factory()->create(['name' => $name])]
-        );
-
-        $bus = Bus::factory()->create(['seats_capacity' => $capacity]);
-        $trip = Trip::factory()->create(['bus_id' => $bus->id]);
-
-        $cities->values()->each(fn (City $city, int $order) => TripStation::factory()->create([
-            'trip_id' => $trip->id,
-            'city_id' => $city->id,
-            'station_order' => $order,
-        ]));
-
-        return [$trip, $cities];
     }
 
     private function assertEnvelope(TestResponse $response, bool $okay): void

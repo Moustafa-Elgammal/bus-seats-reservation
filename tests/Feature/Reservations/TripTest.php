@@ -2,132 +2,75 @@
 
 namespace Tests\Feature\Reservations;
 
-use App\Models\Bus;
 use App\Models\City;
-use App\Models\Trip;
-use App\Models\TripStation;
-use App\Services\Trips\TripService;
+use App\Services\Trips\Interfaces\TripServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\BuildsTrips;
 use Tests\TestCase;
 
 class TripTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsTrips, RefreshDatabase;
+
+    private TripServiceInterface $tripService;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->tripService = app(TripServiceInterface::class);
+    }
 
     public function test_get_trip_stations_orders()
     {
-        // seed init cities
-        $from = City::factory()->create(['name' => 'Cairo']);
-        $in = City::factory()->create(['name' => 'AlMinya']);
-        $to = City::factory()->create(['name' => 'Asyut']);
+        [$trip, $c] = $this->makeTrip(['Cairo', 'AlMinya', 'Asyut']);
 
-        // create bus
-        $bus = Bus::factory()->create([
-            'name' => 'Cairo Bus',
-        ]);
-
-        // attach a trip to bus
-        $trip = Trip::factory()->create([
-            'name' => 'Cairo Asyut Trip',
-            'bus_id' => $bus->id,
-        ]);
-
-        // get some or all cities to create the trip route
-        $cities = [$from, $in, $to];
-        foreach ($cities as $key => $city) {
-            TripStation::factory()->create([
-                'trip_id' => $trip->id,
-                'city_id' => $city->id,
-                'station_order' => $key,
-            ]);
-        }
-
-        $tripService = new TripService;
         // strict: exact ints, in route order
-        $this->assertSame([$from->id, $in->id, $to->id], $tripService->getTripStationsOrders($trip->id));
+        $this->assertSame(
+            [$c['Cairo']->id, $c['AlMinya']->id, $c['Asyut']->id],
+            $this->tripService->getTripStationsOrders($trip->id),
+        );
     }
 
     public function test_get_needed_stops_from_trip()
     {
-        // seed init cities
-        $from = City::factory()->create(['name' => 'Cairo']);
-        $to = City::factory()->create(['name' => 'Giza']);
-        City::factory()->create(['name' => 'AlFayyum']);
-        City::factory()->create(['name' => 'AlMinya']);
-        City::factory()->create(['name' => 'Asyut']);
+        [$trip, $c] = $this->makeTrip(['Cairo', 'Giza', 'AlFayyum', 'AlMinya', 'Asyut']);
 
-        // create bus
-        $bus = Bus::factory()->create([
-            'name' => 'Cairo Bus',
-        ]);
-
-        // attach a trip to bus
-        $trip = Trip::factory()->create([
-            'name' => 'Cairo Asyut Trip',
-            'bus_id' => $bus->id,
-        ]);
-
-        // get some or all cities to create the trip route
-        $cities = City::all();
-        foreach ($cities as $key => $city) {
-            TripStation::factory()->create([
-                'trip_id' => $trip->id,
-                'city_id' => $city->id,
-                'station_order' => $key,
-            ]);
-        }
-
-        $tripService = new TripService;
         // strict: a plain list of ints (from inclusive, to exclusive)
-        $this->assertSame([$from->id], $tripService->getNeededStopsFromTrip($trip->id, $from->id, $to->id));
-        $this->assertSame([$from->id, $to->id], $tripService->getNeededStopsFromTrip($trip->id, $from->id, $to->id + 1));
+        $this->assertSame(
+            [$c['Cairo']->id],
+            $this->tripService->getNeededStopsFromTrip($trip->id, $c['Cairo']->id, $c['Giza']->id),
+        );
+        $this->assertSame(
+            [$c['Cairo']->id, $c['Giza']->id],
+            $this->tripService->getNeededStopsFromTrip($trip->id, $c['Cairo']->id, $c['AlFayyum']->id),
+        );
+    }
+
+    public function test_get_needed_stops_from_trip_returns_nothing_for_an_invalid_leg()
+    {
+        [$trip, $c] = $this->makeTrip(['Cairo', 'AlMinya', 'Asyut']);
+
+        $this->assertSame([], $this->tripService->getNeededStopsFromTrip($trip->id, $c['Asyut']->id, $c['Cairo']->id));
     }
 
     public function test_validate_route_trip()
     {
-        // seed init cities
-        $from = City::factory()->create(['name' => 'Cairo']);
-        $to = City::factory()->create(['name' => 'Giza']);
-        City::factory()->create(['name' => 'AlFayyum']);
-        City::factory()->create(['name' => 'AlMinya']);
-        City::factory()->create(['name' => 'Asyut']);
+        [$trip, $c] = $this->makeTrip(['Cairo', 'Giza', 'AlFayyum', 'AlMinya', 'Asyut']);
+        $offRoute = City::factory()->create(['name' => 'Aswan']);
 
-        // create bus
-        $bus = Bus::factory()->create([
-            'name' => 'Cairo Bus',
-        ]);
+        // same city on both ends
+        $this->assertFalse($this->tripService->validateNeededTripRoute($trip->id, $c['Cairo']->id, $c['Cairo']->id));
+        $this->assertFalse($this->tripService->validateNeededTripRoute($trip->id, $c['Giza']->id, $c['Giza']->id));
 
-        // attach a trip to bus
-        $trip = Trip::factory()->create([
-            'name' => 'Cairo Asyut Trip',
-            'bus_id' => $bus->id,
-        ]);
-
-        // get some or all cities to create the trip route
-        $cities = City::all();
-        foreach ($cities as $key => $city) {
-            TripStation::factory()->create([
-                'trip_id' => $trip->id,
-                'city_id' => $city->id,
-                'station_order' => $key,
-            ]);
-        }
-
-        $tripService = new TripService;
-
-        // check same value from
-        $this->assertFalse($tripService->validateNeededTripRoute($trip->id, $from->id, $from->id));
-
-        // check same value to
-        $this->assertFalse($tripService->validateNeededTripRoute($trip->id, $to->id, $to->id));
-
-        // cities not included
-        $this->assertFalse($tripService->validateNeededTripRoute($trip->id, $from->id + 100, $to->id + 100));
+        // cities that are not on this route
+        $this->assertFalse($this->tripService->validateNeededTripRoute($trip->id, $offRoute->id, $c['Asyut']->id));
+        $this->assertFalse($this->tripService->validateNeededTripRoute($trip->id, $c['Cairo']->id, $offRoute->id));
 
         // reversed route
-        $this->assertFalse($tripService->validateNeededTripRoute($trip->id, $to->id, $from->id));
+        $this->assertFalse($this->tripService->validateNeededTripRoute($trip->id, $c['Asyut']->id, $c['Cairo']->id));
 
         // normal case
-        $this->assertTrue($tripService->validateNeededTripRoute($trip->id, $from->id, $to->id + 1));
+        $this->assertTrue($this->tripService->validateNeededTripRoute($trip->id, $c['Cairo']->id, $c['Asyut']->id));
     }
 }
