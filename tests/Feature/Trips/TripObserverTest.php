@@ -24,6 +24,7 @@ class TripObserverTest extends TestCase
         $this->assertDatabaseCount('trips_seats', 7);
         $this->assertSame(7, $trip->seats()->count());
         $this->assertTrue($trip->seats->every(fn (TripSeat $seat) => $seat->trip_id === $trip->id));
+        $this->assertSame(range(1, 7), $trip->seats->pluck('seat_no')->sort()->values()->all());
     }
 
     public function test_created_throws_when_the_trip_has_no_bus()

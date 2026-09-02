@@ -5,7 +5,6 @@ namespace Tests\Feature\Reservations;
 use App\Models\Bus;
 use App\Models\City;
 use App\Models\Trip;
-use App\Models\TripSeat;
 use App\Models\TripStation;
 use App\Services\Trips\TripService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -43,11 +42,6 @@ class TripTest extends TestCase
             ]);
         }
 
-        // generate the trip seats
-        TripSeat::factory($bus->seats_capacity)->create([
-            'trip_id' => $trip->id,
-        ]);
-
         $tripService = new TripService;
         // strict: exact ints, in route order
         $this->assertSame([$from->id, $in->id, $to->id], $tripService->getTripStationsOrders($trip->id));
@@ -82,11 +76,6 @@ class TripTest extends TestCase
                 'station_order' => $key,
             ]);
         }
-
-        // generate the trip seats
-        TripSeat::factory($bus->seats_capacity)->create([
-            'trip_id' => $trip->id,
-        ]);
 
         $tripService = new TripService;
         // strict: a plain list of ints (from inclusive, to exclusive)
@@ -123,11 +112,6 @@ class TripTest extends TestCase
                 'station_order' => $key,
             ]);
         }
-
-        // generate the trip seats
-        TripSeat::factory($bus->seats_capacity)->create([
-            'trip_id' => $trip->id,
-        ]);
 
         $tripService = new TripService;
 

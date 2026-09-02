@@ -15,8 +15,11 @@ return new class extends Migration
     {
         Schema::create('trips_seats', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('trip_id')->references('id')->on('trips');
+            $table->foreignId('trip_id')->references('id')->on('trips')->cascadeOnDelete();
+            // human-facing seat label, 1..bus.seats_capacity (see TripObserver)
+            $table->unsignedSmallInteger('seat_no');
             $table->timestamps();
+            $table->unique(['trip_id', 'seat_no']);
         });
     }
 

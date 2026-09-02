@@ -16,7 +16,7 @@ return new class extends Migration
     {
         Schema::table('reservations_stops', function (Blueprint $table) {
             $table->foreignId('seat_id')->nullable()->after('reservation_id')
-                ->constrained('trips_seats');
+                ->constrained('trips_seats')->cascadeOnDelete();
         });
 
         // Backfill existing rows from their parent reservation. The subquery

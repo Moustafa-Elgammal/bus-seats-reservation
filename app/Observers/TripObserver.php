@@ -31,8 +31,9 @@ class TripObserver
 
         $now = now();
 
-        TripSeat::query()->insert(array_map(fn (): array => [
+        TripSeat::query()->insert(array_map(fn (int $seatNo): array => [
             'trip_id' => $trip->id,
+            'seat_no' => $seatNo,
             'created_at' => $now,
             'updated_at' => $now,
         ], range(1, $capacity)));
