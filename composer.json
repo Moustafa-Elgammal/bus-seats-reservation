@@ -10,7 +10,6 @@
         "guzzlehttp/guzzle": "^7.8",
         "laravel/framework": "^13.0",
         "laravel/passport": "^13.0",
-        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0"
     },
     "require-dev": {
@@ -43,6 +42,10 @@
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-install-cmd": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php -r \"preg_match('/^APP_KEY=.+/m', @file_get_contents('.env')) || passthru(escapeshellarg(PHP_BINARY).' artisan key:generate --ansi');\""
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

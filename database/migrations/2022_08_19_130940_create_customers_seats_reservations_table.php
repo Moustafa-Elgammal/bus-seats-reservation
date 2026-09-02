@@ -15,9 +15,11 @@ return new class extends Migration
     {
         Schema::create('customers_seats_reservations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->references('id')->on('users');
-            $table->foreignId('seat_id')->references('id')->on('trips_seats');
+            $table->foreignId('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreignId('seat_id')->references('id')->on('trips_seats')->cascadeOnDelete();
             $table->timestamps();
+            $table->index('seat_id');
+            $table->index('user_id');
         });
     }
 

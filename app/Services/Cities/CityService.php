@@ -4,40 +4,72 @@ namespace App\Services\Cities;
 
 use App\Models\City;
 use App\Services\ErrorService;
-use phpDocumentor\Reflection\Types\Collection;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\QueryException;
 
 class CityService
 {
     use ErrorService;
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection<int, City>
      */
-    public function getAllCities()
+    public function getAllCities(): Collection
     {
         return City::all();
     }
 
-    /** create city
-     * @param $city_name
-     * @return bool
-     */
-    public function create(string $city_name):bool
+    public function create(string $cityName): bool
     {
-        $city = new City();
-        $city->name = $city_name;
+        $city = new City;
+        $city->name = $cityName;
 
         try {
-            if ($city->save())
+            if ($city->save()) {
                 return true;
+            }
 
-            $this->setError(__("City can not be saved"));
+            $this->setError(__('City can not be saved'));
+
             return false;
-
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
             $this->setError($e->getMessage());
+
             return false;
         }
     }
 
+    public function rename(City $city, string $cityName): bool
+    {
+        $city->name = $cityName;
+
+        try {
+            if ($city->save()) {
+                return true;
+            }
+
+            $this->setError(__('City can not be saved'));
+
+            return false;
+        } catch (\Exception $e) {
+            $this->setError($e->getMessage());
+
+            return false;
+        }
+    }
+
+    /**
+     * A city that is still a stop on a route, or part of a sold leg, is kept:
+     * the schema restricts the delete and the error is reported to the admin.
+     */
+    public function delete(City $city): bool
+    {
+        try {
+            return (bool) $city->delete();
+        } catch (QueryException) {
+            $this->setError(__('This city is used by a trip route or a reservation and can not be deleted.'));
+
+            return false;
+        }
+    }
 }

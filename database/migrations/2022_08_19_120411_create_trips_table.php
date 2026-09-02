@@ -16,7 +16,8 @@ return new class extends Migration
         Schema::create('trips', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('bus_id')->references('id')->on('buses');
+            // a bus that still runs trips may not be deleted
+            $table->foreignId('bus_id')->references('id')->on('buses')->restrictOnDelete();
             $table->timestamps();
         });
     }

@@ -4,18 +4,15 @@ namespace App\Services\Seats\Interfaces;
 
 interface SeatReservationValidationInterface
 {
-    /** check trip with $tid is the parent of the seat with $sid
-     * @param $sid
-     * @param $tid
-     * @return bool
+    /**
+     * Whether the seat with $seatId belongs to the trip with $tripId.
      */
-    public static  function checkSeatBelognToTrip($sid, $tid): bool;
+    public function checkSeatBelongsToTrip(int $seatId, int $tripId): bool;
 
-
-    /** check if a seat not available with some cities
-     * @param $seatId
-     * @param $needed_stations
-     * @return bool
+    /**
+     * Whether the seat is free for every city in the requested leg.
+     *
+     * @param  list<int>  $neededCities
      */
-    public static function checkSeatReservations($seatId, $needed_stations): bool;
+    public function checkSeatReservations(int $seatId, array $neededCities): bool;
 }

@@ -14,7 +14,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::define('admin', fn (User $user) => $user->user_group === 1);
+        Gate::define('admin', fn (User $user) => $user->isAdmin());
 
         // The API consumers (see the Postman collection) authenticate with the
         // OAuth password grant, which Passport 12+ no longer enables by default.

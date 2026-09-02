@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserGroup;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -16,10 +17,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::factory()->create([
-            'name' => 'admin',
-            'email' => 'admin@admin.com',
-            'password' => '123456',
-            'user_group' => 1,
+            'name' => config('seeding.admin.name'),
+            'email' => config('seeding.admin.email'),
+            'password' => config('seeding.admin.password'),
+            'user_group' => UserGroup::Admin,
         ]);
 
         $this->call(TripSeed::class);

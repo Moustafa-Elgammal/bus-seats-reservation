@@ -2,143 +2,62 @@
 
 namespace Tests\Feature\Reservations;
 
-use App\Models\Bus;
-use App\Models\City;
-use App\Models\Trip;
-use App\Models\TripsSeat;
-use App\Models\TripsStation;
 use App\Models\User;
-use App\Services\Seats\TripSeatService;
+use App\Services\Reservations\Interfaces\ReservationInterface;
+use App\Services\Seats\Interfaces\TripSeatServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\BuildsTrips;
 use Tests\TestCase;
 
 class TripSeatsTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsTrips, RefreshDatabase;
 
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
-    public function test_get_trip_seats()
+    private TripSeatServiceInterface $service;
+
+    protected function setUp(): void
     {
-        // seed init cities
-        $from = \App\Models\City::factory()->create(['name' => 'Cairo']);
-        $in = \App\Models\City::factory()->create(['name' => 'AlMinya']);
-        $to = \App\Models\City::factory()->create(['name' => 'Asyut']);
+        parent::setUp();
 
-        // create bus
-        $bus = Bus::factory()->create([
-            'name' => 'Cairo Bus',
-        ]);
+        $this->service = app(TripSeatServiceInterface::class);
+    }
 
-        // attach a trip to bus
-        $trip = Trip::factory()->create([
-            'name' => 'Cairo Asyut Trip',
-            'bus_id' => $bus->id
-        ]);
+    public function test_get_trip_seats_returns_every_seat_of_the_trip()
+    {
+        [$trip] = $this->makeTrip(['Cairo', 'AlMinya', 'Asyut'], capacity: 5);
 
-        // get some or all cities to create the trip route
-        $cities = City::all();
-        foreach ($cities as $key => $city) {
-            TripsStation::factory()->create([
-                'trip_id' => $trip->id,
-                'city_id' => $city->id,
-                'station_order' => $key
-            ]);
-        }
-
-        // generate the trip seats
-        $seats = $trip->seats;
-
-        // check colums
-        $needed = ['id', 'trip_id', 'city_id', 'station_order'];
-        $this->assertEquals(TripSeatService::getTripSeats($trip->id)->pluck($needed), $seats->pluck($needed));
+        $this->assertEqualsCanonicalizing(
+            $trip->seats->pluck('id')->all(),
+            $this->service->getTripSeats($trip->id)->pluck('id')->all(),
+        );
     }
 
     public function test_check_seat_reservation()
     {
-        // seed init cities
-        $from = \App\Models\City::factory()->create(['name' => 'Cairo']);
-        $in = \App\Models\City::factory()->create(['name' => 'AlMinya']);
-        $to = \App\Models\City::factory()->create(['name' => 'Asyut']);
+        [$trip, $cities] = $this->makeTrip(['Cairo', 'AlMinya', 'Asyut']);
+        $seats = $trip->seats;
 
-        // create bus
-        $bus = Bus::factory()->create([
-            'name' => 'Cairo Bus',
-        ]);
+        app(ReservationInterface::class)->bookSeat(
+            $trip->id, $seats[2]->id, $cities['Cairo']->id, $cities['Asyut']->id, User::factory()->create()->id,
+        );
 
-        // attach a trip to bus
-        $trip = Trip::factory()->create([
-            'name' => 'Cairo Asyut Trip',
-            'bus_id' => $bus->id
-        ]);
+        // the booked seat is no longer free for the overlapping Cairo->AlMinya leg
+        $this->assertFalse($this->service->checkSeatReservations(
+            $seats[2]->id, [$cities['Cairo']->id, $cities['AlMinya']->id],
+        ));
 
-        // get some or all cities to create the trip route
-        $cities = City::all();
-        foreach ($cities as $key => $city) {
-            TripsStation::factory()->create([
-                'trip_id' => $trip->id,
-                'city_id' => $city->id,
-                'station_order' => $key
-            ]);
-        }
-
-        // generate the trip seats
-        $seats = TripsSeat::factory($bus->seats_capacity)->create([
-            'trip_id' => $trip->id
-        ]);
-
-        $user = User::factory()->create();
-        $check = (new \App\Services\Reservations\ReservationService(new \App\Services\Trips\TripService()))
-            ->bookSeat($trip->id, $seats[2]->id, $from->id, $to->id, $user->id);
-
-        $this->assertTrue($check);
-
-        // reserved seat
-        $this->assertFalse(TripSeatService::checkSeatReservations($seats[2]->id, [$from->id, $in->id]));
-
-        // unreserved seat
-        $this->assertTrue(TripSeatService::checkSeatReservations($seats[1]->id, [$from->id, $in->id]));
+        // an untouched seat still is
+        $this->assertTrue($this->service->checkSeatReservations(
+            $seats[1]->id, [$cities['Cairo']->id, $cities['AlMinya']->id],
+        ));
     }
 
-    public function test_check_seat_belong_toTrip()
+    public function test_check_seat_belongs_to_trip()
     {
-        // seed init cities
-        $from = \App\Models\City::factory()->create(['name' => 'Cairo']);
-        $in = \App\Models\City::factory()->create(['name' => 'AlMinya']);
-        $to = \App\Models\City::factory()->create(['name' => 'Asyut']);
+        [$trip] = $this->makeTrip(['Cairo', 'AlMinya', 'Asyut']);
+        $seatId = $trip->seats->first()->id;
 
-        // create bus
-        $bus = Bus::factory()->create([
-            'name' => 'Cairo Bus',
-        ]);
-
-        // attach a trip to bus
-        $trip = Trip::factory()->create([
-            'name' => 'Cairo Asyut Trip',
-            'bus_id' => $bus->id
-        ]);
-
-        // get some or all cities to create the trip route
-        $cities = City::all();
-        foreach ($cities as $key => $city) {
-            TripsStation::factory()->create([
-                'trip_id' => $trip->id,
-                'city_id' => $city->id,
-                'station_order' => $key
-            ]);
-        }
-
-        // generate the trip seats
-        $seats = TripsSeat::factory($bus->seats_capacity)->create([
-            'trip_id' => $trip->id
-        ]);
-
-        $this->assertTrue(TripSeatService::checkSeatBelognToTrip($seats[1]->id, $trip->id));
-        $this->assertFalse(TripSeatService::checkSeatBelognToTrip($seats[1]->id, $trip->id - 1));
-
-
+        $this->assertTrue($this->service->checkSeatBelongsToTrip($seatId, $trip->id));
+        $this->assertFalse($this->service->checkSeatBelongsToTrip($seatId, $trip->id + 1));
     }
 }

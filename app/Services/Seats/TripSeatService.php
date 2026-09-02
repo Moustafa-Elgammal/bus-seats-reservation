@@ -2,53 +2,41 @@
 
 namespace App\Services\Seats;
 
-use App\Models\ReservationsStop;
-use App\Models\TripsSeat;
-use App\Services\Seats\Interfaces\SeatReservationValidationInterface;
+use App\Models\ReservationStop;
+use App\Models\TripSeat;
 use App\Services\Seats\Interfaces\TripSeatServiceInterface;
+use Illuminate\Database\Eloquent\Collection;
 
-class TripSeatService implements  TripSeatServiceInterface
+class TripSeatService implements TripSeatServiceInterface
 {
-    /** get the seats of trip
-     * @param $tripId
-     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+    /**
+     * @return Collection<int, TripSeat>
      */
-    public static  function getTripSeats($tripId){
-        return TripsSeat::query()
-            ->where('trip_id', '=', $tripId)
-            ->with('reservations')
+    public function getTripSeats(int $tripId): Collection
+    {
+        return TripSeat::query()
+            ->where('trip_id', $tripId)
             ->get();
     }
 
     /**
-     * @param $seatId
-     * @param $needed_stations
-     * @return bool
+     * True when the seat has no reservation stop on any city of the requested leg.
+     *
+     * @param  list<int>  $neededCities
      */
-    public static function checkSeatReservations($seatId, $needed_stations): bool
+    public function checkSeatReservations(int $seatId, array $neededCities): bool
     {
-        return !ReservationsStop::query()
-            ->leftJoin('customers_seats_reservations',
-                'customers_seats_reservations.id', '=', 'reservations_stops.reservation_id')
-            ->where('customers_seats_reservations.seat_id','=', $seatId)
-            ->whereIn('reservations_stops.city_id', $needed_stations)->count();
+        return ! ReservationStop::query()
+            ->where('seat_id', $seatId)
+            ->whereIn('city_id', $neededCities)
+            ->exists();
     }
 
-    /** check a seat of a trip
-     * @param $sid
-     * @param $tid
-     * @return bool
-     */
-    public static function checkSeatBelognToTrip($sid, $tid): bool
+    public function checkSeatBelongsToTrip(int $seatId, int $tripId): bool
     {
-        // seat validation
-        if(! $seat = TripsSeat::find($sid))
-            return false;
-
-        // seat trip id
-        if ($seat->trip_id == $tid)
-            return true;
-
-        return false;
+        return TripSeat::query()
+            ->whereKey($seatId)
+            ->where('trip_id', $tripId)
+            ->exists();
     }
 }

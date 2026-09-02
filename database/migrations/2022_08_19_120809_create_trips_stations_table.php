@@ -15,11 +15,14 @@ return new class extends Migration
     {
         Schema::create('trips_stations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('trip_id')->references('id')->on('trips');
-            $table->foreignId('city_id')->references('id')->on('cities');
+            $table->foreignId('trip_id')->references('id')->on('trips')->cascadeOnDelete();
+            $table->foreignId('city_id')->references('id')->on('cities')->restrictOnDelete();
             $table->smallInteger('station_order');
             $table->timestamps();
-            $table->index(['trip_id', 'city_id']);
+            // a city appears at most once on a route, and every stop holds a
+            // distinct position — both are relied on by TripService's index maths
+            $table->unique(['trip_id', 'city_id']);
+            $table->unique(['trip_id', 'station_order']);
         });
     }
 

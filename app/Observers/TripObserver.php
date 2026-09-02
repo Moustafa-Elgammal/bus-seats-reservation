@@ -3,70 +3,39 @@
 namespace App\Observers;
 
 use App\Models\Trip;
-use App\Models\TripsSeat;
+use App\Models\TripSeat;
+use RuntimeException;
 
 class TripObserver
 {
     /**
-     * Handle the Trip "created" event.
+     * Generate one trips_seats row per seat of the trip's bus.
      *
-     * @param  \App\Models\Trip  $trip
-     * @return void
+     * Runs inside whatever transaction created the Trip (see TripsController and
+     * TripSeed) so a failure here rolls the Trip back with it. Failures are not
+     * swallowed.
      */
-    public function created(Trip $trip)
+    public function created(Trip $trip): void
     {
-        // generate trip seats
-        try {
-            TripsSeat::factory($trip->bus->seats_capacity)->create([
-                "trip_id" => $trip->id
-            ]);
-        }catch (\Exception $e){
-            logger('Trip observer can not generate trip seats');
+        $bus = $trip->bus;
+
+        if ($bus === null) {
+            throw new RuntimeException("Trip {$trip->id} has no bus; cannot generate seats.");
         }
 
-    }
+        $capacity = max((int) $bus->seats_capacity, 0);
 
-    /**
-     * Handle the Trip "updated" event.
-     *
-     * @param  \App\Models\Trip  $trip
-     * @return void
-     */
-    public function updated(Trip $trip)
-    {
-        //
-    }
+        if ($capacity === 0) {
+            return;
+        }
 
-    /**
-     * Handle the Trip "deleted" event.
-     *
-     * @param  \App\Models\Trip  $trip
-     * @return void
-     */
-    public function deleted(Trip $trip)
-    {
-        //
-    }
+        $now = now();
 
-    /**
-     * Handle the Trip "restored" event.
-     *
-     * @param  \App\Models\Trip  $trip
-     * @return void
-     */
-    public function restored(Trip $trip)
-    {
-        //
-    }
-
-    /**
-     * Handle the Trip "force deleted" event.
-     *
-     * @param  \App\Models\Trip  $trip
-     * @return void
-     */
-    public function forceDeleted(Trip $trip)
-    {
-        //
+        TripSeat::query()->insert(array_map(fn (int $seatNo): array => [
+            'trip_id' => $trip->id,
+            'seat_no' => $seatNo,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], range(1, $capacity)));
     }
 }

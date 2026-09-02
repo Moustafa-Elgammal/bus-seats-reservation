@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TripsStation extends Model
+class ReservationStop extends Model
 {
     use HasFactory;
 
-    public function city(){
-        return $this->belongsTo(City::class, 'city_id', 'id');
-    }
+    protected $table = 'reservations_stops';
+
+    protected $fillable = ['reservation_id', 'seat_id', 'city_id'];
 }

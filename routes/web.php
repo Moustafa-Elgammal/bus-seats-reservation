@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\BusesController;
+use App\Http\Controllers\CitiesController;
+use App\Http\Controllers\TripsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,17 +24,23 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
 
-Route::middleware(['auth','admin'])->group(function (){
-  Route::get('cities',  [\App\Http\Controllers\CitiesController::class, 'index'])->name('cities');
-    Route::post('city',  [\App\Http\Controllers\CitiesController::class, 'create'])->name('city.create');
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('cities', [CitiesController::class, 'index'])->name('cities');
+    Route::post('city', [CitiesController::class, 'create'])->name('city.create');
+    Route::put('city/{city}', [CitiesController::class, 'update'])->name('city.update');
+    Route::delete('city/{city}', [CitiesController::class, 'destroy'])->name('city.destroy');
 
-    Route::get('buses',  [\App\Http\Controllers\BusesController::class, 'index'])->name('buses');
-    Route::post('bus',  [\App\Http\Controllers\BusesController::class, 'create'])->name('bus.create');
+    Route::get('buses', [BusesController::class, 'index'])->name('buses');
+    Route::post('bus', [BusesController::class, 'create'])->name('bus.create');
+    Route::put('bus/{bus}', [BusesController::class, 'update'])->name('bus.update');
+    Route::delete('bus/{bus}', [BusesController::class, 'destroy'])->name('bus.destroy');
 
-    Route::get('trips',  [\App\Http\Controllers\TripsController::class, 'index'])->name('trips');
-    Route::post('trip',  [\App\Http\Controllers\TripsController::class, 'create'])->name('trip.create');
-    Route::post('trip/station/{id}',  [\App\Http\Controllers\TripsController::class, 'addStation']);
+    Route::get('trips', [TripsController::class, 'index'])->name('trips');
+    Route::post('trip', [TripsController::class, 'create'])->name('trip.create');
+    Route::put('trip/{trip}', [TripsController::class, 'update'])->name('trip.update');
+    Route::delete('trip/{trip}', [TripsController::class, 'destroy'])->name('trip.destroy');
+    Route::post('trip/station/{id}', [TripsController::class, 'addStation'])->name('trip.station.add');
+    Route::delete('trip/station/{station}', [TripsController::class, 'removeStation'])->name('trip.station.destroy');
 });
-
 
 require __DIR__.'/auth.php';

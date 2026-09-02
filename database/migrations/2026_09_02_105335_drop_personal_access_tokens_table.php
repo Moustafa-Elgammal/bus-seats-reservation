@@ -7,11 +7,15 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
-     *
-     * @return void
+     * Drop the Sanctum personal_access_tokens table. The app authenticates
+     * exclusively with Passport (oauth_* tables); this table was never used.
      */
-    public function up()
+    public function up(): void
+    {
+        Schema::dropIfExists('personal_access_tokens');
+    }
+
+    public function down(): void
     {
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
@@ -23,15 +27,5 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
-    }
-
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
-    {
-        Schema::dropIfExists('personal_access_tokens');
     }
 };

@@ -4,24 +4,30 @@ namespace App\Services;
 
 trait ErrorService
 {
-    protected $errors = [];
+    /** @var list<string> */
+    protected array $errors = [];
 
-    /** all errors
-     * @return array
+    /**
+     * @return list<string>
      */
-    public function getErrors() : array{
+    public function getErrors(): array
+    {
         return $this->errors;
     }
 
-    /** push error or list of error
-     * @param $error
-     * @return void
+    /**
+     * Push a single error message, or merge in a list of them.
+     *
+     * @param  string|list<string>  $error
      */
-    public function setError($error): void{
-        if (is_array($error))
+    public function setError(string|array $error): void
+    {
+        if (is_array($error)) {
             $this->errors = array_merge($this->errors, $error);
 
-        $this->errors [] = $error;
-    }
+            return;
+        }
 
+        $this->errors[] = $error;
+    }
 }
