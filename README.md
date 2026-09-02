@@ -34,32 +34,34 @@ Build a fleet-management system (bus-booking system) Having:
 
 
 ## How To Run:
-    
-Simply this app support laravel Sail where it is delivered as docker container
 
-Just Follow the steps
+Built on **Laravel 13 / PHP 8.3+**, delivered as a Docker container via Laravel Sail.
 
-- install laravel package using
+Follow the steps:
+
+- install PHP dependencies
     ```
       docker compose up composer
-   ```
-
-- run the containers using
-  
-  ```
-      vendor/bin/sail up -d 
-    ```
- 
-- migration
-    ```
-      vendor/bin/sail artisan migrate:refresh
     ```
 
-- data seeds (initial trip, but, and auth clients)
+- run the containers (PHP 8.4 image)
     ```
-     vendor/bin/sail artisan db:seed
+      vendor/bin/sail up -d
     ```
 
+- run migrations + seeders (cities, bus, trip, admin user, OAuth clients)
+    ```
+      vendor/bin/sail artisan migrate:fresh --seed
+    ```
+
+- generate the Passport signing keys
+    ```
+      vendor/bin/sail artisan passport:keys
+    ```
+
+The seeder prints the **password-grant `client_id` / `client_secret` once** during
+`db:seed` — Passport 12+ generates a UUID id and a hashed secret, so copy those values into
+the Postman collection (or your API consumer) instead of the old fixed credentials.
 
 Now You can Use the Postman Collection to check the apis, find it at:
 
@@ -81,11 +83,13 @@ then
 
 ### run test
 
+Tests run against sqlite `:memory:` (PHPUnit 12) — no database container needed:
+
      vendor/bin/sail artisan test
 
 ### Admin Area 
 
-login as admin from <a href="localhost/admin">here</a>
+login as admin from <a href="localhost/login">here</a>
 
 ```
     email:  admin@admin.com
