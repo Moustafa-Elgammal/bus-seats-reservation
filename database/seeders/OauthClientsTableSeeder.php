@@ -3,52 +3,37 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Laravel\Passport\Client;
+use Laravel\Passport\ClientRepository;
 
 class OauthClientsTableSeeder extends Seeder
 {
-
     /**
-     * Auto generated seed file
+     * Seed the Passport OAuth clients.
      *
-     * @return void
+     * Passport 12+ generates UUID client ids and (by default) hashed secrets, so
+     * the clients can no longer be inserted with fixed ids/secrets. We create them
+     * through the ClientRepository and print the password-grant credentials once so
+     * they can be copied into the Postman collection / API consumer configuration.
      */
-    public function run()
+    public function run(): void
     {
+        $clients = app(ClientRepository::class);
 
+        if (Client::query()->count() > 0) {
+            $this->command?->warn('OAuth clients already exist; skipping OauthClientsTableSeeder.');
 
-        \DB::table('oauth_clients')->delete();
+            return;
+        }
 
-        \DB::table('oauth_clients')->insert(array (
-            0 =>
-            array (
-                'created_at' => '2022-08-19 23:00:21',
-                'id' => 1,
-                'name' => 'Laravel Personal Access Client',
-                'password_client' => 0,
-                'personal_access_client' => 1,
-                'provider' => NULL,
-                'redirect' => 'http://localhost',
-                'revoked' => 0,
-                'secret' => '1TITUtX6fJ18ggl9pMSDU1m9n4yu5pUkEh2BFadl',
-                'updated_at' => '2022-08-19 23:00:21',
-                'user_id' => NULL,
-            ),
-            1 =>
-            array (
-                'created_at' => '2022-08-19 23:00:21',
-                'id' => 2,
-                'name' => 'Laravel Password Grant Client',
-                'password_client' => 1,
-                'personal_access_client' => 0,
-                'provider' => 'users',
-                'redirect' => 'http://localhost',
-                'revoked' => 0,
-                'secret' => 'gmQXxhah3ZKUaqIzAx9WAGau3E06FrH9qvKnhwD0',
-                'updated_at' => '2022-08-19 23:00:21',
-                'user_id' => NULL,
-            )
-        ));
+        $clients->createPersonalAccessGrantClient('Personal Access Client', 'users');
 
+        $passwordClient = $clients->createPasswordGrantClient('Password Grant Client', 'users', confidential: true);
 
+        $this->command?->info('Password grant client created:');
+        $this->command?->table(
+            ['client_id', 'client_secret'],
+            [[$passwordClient->getKey(), $passwordClient->plainSecret]],
+        );
     }
 }

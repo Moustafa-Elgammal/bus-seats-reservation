@@ -1,18 +1,17 @@
 # For more information: https://laravel.com/docs/sail
-version: '3'
 services:
     composer:
-        image: composer:2.0
+        image: composer:2
         volumes:
             - ".:/app"
-        command: [ "composer", "update"]
+        command: [ "composer", "update" ]
     laravel.test:
         build:
-            context: ./vendor/laravel/sail/runtimes/8.1
+            context: ./vendor/laravel/sail/runtimes/8.4
             dockerfile: Dockerfile
             args:
                 WWWGROUP: '${WWWGROUP}'
-        image: sail-8.1/app
+        image: sail-8.4/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
@@ -50,13 +49,13 @@ services:
             retries: 3
             timeout: 5s
     install_frontend:
-        image: node
+        image: node:22
         working_dir: '/app'
         command: ["npm", "install"]
         volumes:
             -   '.:/app'
     build_frontend:
-        image: node
+        image: node:22
         working_dir: '/app'
         command: ["npm", "run", "build"]
         volumes:

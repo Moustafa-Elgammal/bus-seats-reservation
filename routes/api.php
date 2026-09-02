@@ -20,5 +20,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware('auth:api')->group(function () {
     Route::get('trip/seats', [\App\Http\Controllers\Api\ReservationsController::class, 'getTripSeats']);
-    Route::post('trip/seat/book', [\App\Http\Controllers\Api\ReservationsController::class, 'book_seat']);
+    Route::post('trip/seat/book', [\App\Http\Controllers\Api\ReservationsController::class, 'bookSeat']);
 });

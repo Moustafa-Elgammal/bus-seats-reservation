@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/opt/homebrew/Cellar/php/8.5.9/bin/php",
+            "args": [
+                "/Users/moustafaelgammal/Desktop/bus-seats-reservation/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
