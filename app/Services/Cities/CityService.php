@@ -11,19 +11,17 @@ class CityService
     use ErrorService;
 
     /**
-     * @return Collection
+     * @return Collection<int, City>
      */
-    public function getAllCities()
+    public function getAllCities(): Collection
     {
         return City::all();
     }
 
-    /** create city
-     */
-    public function create(string $city_name): bool
+    public function create(string $cityName): bool
     {
         $city = new City;
-        $city->name = $city_name;
+        $city->name = $cityName;
 
         try {
             if ($city->save()) {
@@ -33,7 +31,6 @@ class CityService
             $this->setError(__('City can not be saved'));
 
             return false;
-
         } catch (\Exception $e) {
             $this->setError($e->getMessage());
 
