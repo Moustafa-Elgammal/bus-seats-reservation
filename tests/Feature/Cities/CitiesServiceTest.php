@@ -10,7 +10,9 @@ use Tests\TestCase;
 
 class CitiesServiceTest extends TestCase
 {
+    use RefreshDatabase;
     use WithFaker;
+
     /**
      * A basic feature test example.
      *
@@ -20,9 +22,9 @@ class CitiesServiceTest extends TestCase
     {
         City::factory(6)->create();
 
-        $toBeChecked = ['id','name'];
+        $toBeChecked = ['id', 'name'];
         $db_cities = City::all()->pluck($toBeChecked);
-        $service_cities = (new CityService())->getAllCities()->pluck($toBeChecked);
+        $service_cities = (new CityService)->getAllCities()->pluck($toBeChecked);
         $this->assertEquals($service_cities, $db_cities);
     }
 
@@ -31,6 +33,6 @@ class CitiesServiceTest extends TestCase
      */
     public function test_create_city()
     {
-        $this->assertTrue((new CityService())->create($this->faker->city()));
+        $this->assertTrue((new CityService)->create($this->faker->city()));
     }
 }
