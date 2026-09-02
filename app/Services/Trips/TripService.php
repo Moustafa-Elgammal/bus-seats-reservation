@@ -7,69 +7,60 @@ use App\Services\Trips\Interfaces\TripServiceInterface;
 
 class TripService implements TripServiceInterface
 {
-    /** get the trip route stations
+    /**
+     * Ordered city ids that make up the trip's route.
+     *
+     * @return list<int>
      */
-    public function getTripStationsOrders($tripId): array
+    public function getTripStationsOrders(int $tripId): array
     {
         return TripStation::query()
-            ->where('trip_id', '=', $tripId)
+            ->where('trip_id', $tripId)
             ->orderBy('station_order')
             ->pluck('city_id')
-            ->toArray();
+            ->map(fn ($cityId): int => (int) $cityId)
+            ->all();
     }
 
-    /** check the arrival and departure station for a trip
+    /**
+     * A leg is valid when from and to differ, both are on the route, and from
+     * comes strictly before to.
      */
-    public function validateNeededTripRoute($tripId, $fromCityId, $toCityId): bool
+    public function validateNeededTripRoute(int $tripId, int $fromCityId, int $toCityId): bool
     {
-
-        // the city of arrival can not be the same as  city of  departure station
-        if ($fromCityId == $toCityId) {
+        if ($fromCityId === $toCityId) {
             return false;
         }
 
-        // get the stations route
-        $trip_stations = $this->getTripStationsOrders($tripId);
+        $tripStations = $this->getTripStationsOrders($tripId);
 
-        // check that from to is included the trip
-        if (! in_array($fromCityId, $trip_stations) || ! in_array($toCityId, $trip_stations)) {
+        if (! in_array($fromCityId, $tripStations, true) || ! in_array($toCityId, $tripStations, true)) {
             return false;
         }
 
-        /**
-         * check the rout of the stations departure
-         */
-        $from = array_search($fromCityId, $trip_stations);
-        $to = array_search($toCityId, $trip_stations);
+        $from = array_search($fromCityId, $tripStations, true);
+        $to = array_search($toCityId, $tripStations, true);
 
-        // the city of arrival can not be before the city of  departure station or the same station
-        if ($from >= $to) {
-            return false;
-        }
-
-        return true;
+        return $from < $to;
     }
 
-    /** this method help to generate the need stations for a selected trip
-     * to use for create reservation stops and checking
+    /**
+     * The leg's occupied city ids: from-city inclusive, to-city exclusive.
+     * An empty array means the requested leg is invalid.
      *
-     * @return bool
+     * @return list<int>
      */
-    public function getNeededStopsFromTrip($tripId, $fromCityId, $toCityId): array
+    public function getNeededStopsFromTrip(int $tripId, int $fromCityId, int $toCityId): array
     {
-        // validate the correct trips and needed from to
         if (! $this->validateNeededTripRoute($tripId, $fromCityId, $toCityId)) {
             return [];
         }
 
-        // get the stations route
-        $trip_stations = $this->getTripStationsOrders($tripId);
+        $tripStations = $this->getTripStationsOrders($tripId);
 
-        // identify the positions of the stations
-        $from = array_search($fromCityId, $trip_stations);
-        $to = array_search($toCityId, $trip_stations);
+        $from = array_search($fromCityId, $tripStations, true);
+        $to = array_search($toCityId, $tripStations, true);
 
-        // return the stations of a selected trip from to
-        return array_slice($trip_stations, $from, $to - $from);
+        return array_slice($tripStations, $from, $to - $from);
     }
 }

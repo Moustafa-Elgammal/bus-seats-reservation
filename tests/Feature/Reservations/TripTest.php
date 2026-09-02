@@ -49,7 +49,8 @@ class TripTest extends TestCase
         ]);
 
         $tripService = new TripService;
-        $this->assertEquals($tripService->getTripStationsOrders($trip->id), [$from->id, $in->id, $to->id]);
+        // strict: exact ints, in route order
+        $this->assertSame([$from->id, $in->id, $to->id], $tripService->getTripStationsOrders($trip->id));
     }
 
     public function test_get_needed_stops_from_trip()
@@ -88,9 +89,9 @@ class TripTest extends TestCase
         ]);
 
         $tripService = new TripService;
-        $this->assertEquals($tripService->getNeededStopsFromTrip($trip->id, $from->id, $to->id), [$from->id]);
-        $this->assertEquals($tripService->getNeededStopsFromTrip($trip->id, $from->id, $to->id + 1), [$from->id, $to->id]);
-
+        // strict: a plain list of ints (from inclusive, to exclusive)
+        $this->assertSame([$from->id], $tripService->getNeededStopsFromTrip($trip->id, $from->id, $to->id));
+        $this->assertSame([$from->id, $to->id], $tripService->getNeededStopsFromTrip($trip->id, $from->id, $to->id + 1));
     }
 
     public function test_validate_route_trip()
