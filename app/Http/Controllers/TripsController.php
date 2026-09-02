@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AddTripStationRequest;
+use App\Http\Requests\CreateTripRequest;
 use App\Models\Bus;
 use App\Models\City;
 use App\Models\Trip;
 use App\Models\TripStation;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
 class TripsController extends Controller
@@ -23,30 +25,23 @@ class TripsController extends Controller
             ->with('buses', $buses);
     }
 
-    public function create(Request $request)
+    public function create(CreateTripRequest $request): RedirectResponse
     {
         // wrap the insert + TripObserver seat generation so they commit together
-        DB::transaction(function () use ($request) {
-            $trip = new Trip;
-            $trip->name = $request->name;
-            $trip->bus_id = $request->bus_id;
-            $trip->save();
-        });
+        DB::transaction(fn () => Trip::query()->create($request->validated()));
 
         return redirect()->back();
     }
 
-    public function addStation($id, Request $request)
+    public function addStation(int $id, AddTripStationRequest $request): RedirectResponse
     {
-        $station = new TripStation;
+        $nextOrder = (int) TripStation::query()->where('trip_id', $id)->max('station_order') + 1;
 
-        $station->trip_id = $id;
-
-        $station->city_id = $request->city_id;
-
-        $station->station_order = $request->last_order + 1;
-
-        $station->save();
+        TripStation::create([
+            'trip_id' => $id,
+            'city_id' => $request->integer('city_id'),
+            'station_order' => $nextOrder,
+        ]);
 
         return redirect()->back();
     }

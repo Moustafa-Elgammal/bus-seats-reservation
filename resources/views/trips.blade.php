@@ -47,7 +47,6 @@
                                         <option value="{{$city->id}}">{{$city->name}}</option>
                                     @endforeach
                                 </select>
-                                <input type="hidden" name="last_order" value="{{$station->station_order ?? 0}}">
                                 <input type="submit" value="save" class="bg-gray-200 p-2 rounded">
                                 @csrf
                             </form>

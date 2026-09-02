@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateBusRequest;
 use App\Models\Bus;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class BusesController extends Controller
 {
@@ -14,12 +15,9 @@ class BusesController extends Controller
         return view('buses')->with('buses', $buses);
     }
 
-    public function create(Request $request)
+    public function create(CreateBusRequest $request): RedirectResponse
     {
-        $bus = new Bus;
-        $bus->name = $request->name;
-        $bus->seats_capacity = $request->seats_capacity;
-        $bus->save();
+        Bus::create($request->validated());
 
         return redirect()->back();
     }
