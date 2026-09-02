@@ -6,6 +6,9 @@ use App\Services\Reservations\Interfaces\ReservationInterface;
 use App\Services\Reservations\ReservationService;
 use App\Services\Trips\Interfaces\TripServiceInterface;
 use App\Services\Trips\TripService;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +27,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->configureRateLimiting();
+    }
+
+    /**
+     * Register the named rate limiters used by the consumer API.
+     */
+    protected function configureRateLimiting(): void
+    {
+        RateLimiter::for('booking', fn (Request $request): Limit => Limit::perMinute(
+            (int) config('reservations.booking_rate_limit')
+        )->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
+
+        RateLimiter::for('seats', fn (Request $request): Limit => Limit::perMinute(
+            (int) config('reservations.seats_rate_limit')
+        )->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
     }
 }

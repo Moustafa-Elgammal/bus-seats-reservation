@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ReservationsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:api')->group(function () {
-    Route::get('trip/seats', [\App\Http\Controllers\Api\ReservationsController::class, 'getTripSeats']);
-    Route::post('trip/seat/book', [\App\Http\Controllers\Api\ReservationsController::class, 'bookSeat']);
+    Route::get('trip/seats', [ReservationsController::class, 'getTripSeats'])
+        ->middleware('throttle:seats');
+    Route::post('trip/seat/book', [ReservationsController::class, 'bookSeat'])
+        ->middleware('throttle:booking');
 });
