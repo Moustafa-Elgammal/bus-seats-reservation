@@ -35,18 +35,28 @@ Build a fleet-management system (bus-booking system) Having:
 
 ## How To Run:
 
-Built on **Laravel 13 / PHP 8.3+**, delivered as a Docker container via Laravel Sail.
+Built on **Laravel 13 / PHP 8.3+** (Sail runs the PHP 8.4 image), delivered as a Docker container via Laravel Sail.
 
 Follow the steps:
+
+- create your environment file (not tracked in git)
+    ```
+      cp .env.example .env
+    ```
 
 - install PHP dependencies
     ```
       docker compose up composer
     ```
 
-- run the containers (PHP 8.4 image)
+- run the containers
     ```
       vendor/bin/sail up -d
+    ```
+
+- generate the application key
+    ```
+      vendor/bin/sail artisan key:generate
     ```
 
 - run migrations + seeders (cities, bus, trip, admin user, OAuth clients)
@@ -63,13 +73,28 @@ The seeder prints the **password-grant `client_id` / `client_secret` once** duri
 `db:seed` — Passport 12+ generates a UUID id and a hashed secret, so copy those values into
 the Postman collection (or your API consumer) instead of the old fixed credentials.
 
+### API
+
+Both endpoints require a Passport password-grant bearer token (`auth:api`). Every
+response uses the envelope `{ data, message, errors, okay }`.
+
+| Method | Path | Parameters |
+| --- | --- | --- |
+| `POST` | `/oauth/token` | `grant_type=password`, `client_id`, `client_secret`, `username`, `password`, `scope` |
+| `GET`  | `/api/trip/seats` | `trip_id`, `from_city_id`, `to_city_id` (query string) — returns the available seat ids for the leg |
+| `POST` | `/api/trip/seat/book` | `trip_id`, `seat_id`, `from_city_id`, `to_city_id` (JSON body) — books the seat for the leg |
+
 Now You can Use the Postman Collection to check the apis, find it at:
 
 
 ```
-path-to-projecct/postman/robusta.postman_collection.json
+path-to-project/postman/robusta.postman_collection.json
 ```
-  
+
+Set the collection variables `client_id` and `client_secret` to the values printed by
+the seeder, run **generate token** (it stores the bearer token automatically), then call
+the two endpoints.
+
 
 #### frontend dev
 run 
@@ -87,12 +112,12 @@ Tests run against sqlite `:memory:` (PHPUnit 12) — no database container neede
 
      vendor/bin/sail artisan test
 
-### Admin Area 
+### Admin Area
 
-login as admin from <a href="localhost/login">here</a>
+Login as admin at [http://localhost/login](http://localhost/login) (nav links to
+`/cities`, `/buses`, `/trips`):
 
 ```
     email:  admin@admin.com
     password:  123456
-    
 ```
