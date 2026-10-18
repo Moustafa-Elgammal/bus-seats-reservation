@@ -40,7 +40,11 @@ providers in `bootstrap/providers.php`.
 
 ### Request flow
 - **API** (`routes/api.php`, `auth:api` / Passport): `GET trip/seats` and `POST trip/seat/book` →
-  `App\Http\Controllers\Api\ReservationsController` → `ReservationService`.
+  `App\Http\Controllers\Api\ReservationsController` → `ReservationService`. Canonical paths are
+  `/api/v1/*` (route names `api.v1.*`); the unversioned paths are deprecated aliases kept for the
+  Postman collection, so register new endpoints under `v1` only. Contract: `docs/openapi.yaml`.
+  Rate limiters `booking` / `seats` are defined in `AppServiceProvider` and tuned via
+  `config/reservations.php` (`BOOKING_RATE_LIMIT`, `SEATS_RATE_LIMIT` env vars).
 - **Web admin** (`routes/web.php`, `auth` + `admin` middleware): `CitiesController`, `BusesController`,
   `TripsController`. The `admin` alias → `App\Http\Middleware\IsAdmin` (requires `user_group == 1`) is
   registered in `bootstrap/app.php`; there is also an `admin` Gate in `AuthServiceProvider::boot()`,
@@ -50,10 +54,10 @@ providers in `bootstrap/providers.php`.
   same envelope with HTTP 422.
 
 ### Service layer (`app/Services/`)
-Business logic lives in services, not controllers/models. Interfaces exist under
-`Services/*/Interfaces/` but are **not bound in any container** — `ReservationsController` and the
-tests construct services manually (`new ReservationService(new TripService)`). If you add a
-binding, do it in `AppServiceProvider` (currently empty).
+Business logic lives in services, not controllers/models. Interfaces under
+`Services/*/Interfaces/` are bound in `AppServiceProvider::register()`; the controller injects
+`ReservationInterface` and tests resolve it with `app(ReservationInterface::class)`. Register new
+service bindings there. `ErrorService` is a trait (collect/get error messages) used by `CityService`.
 
 - `TripService` — reads `trips_stations` ordered by `station_order`.
   `validateNeededTripRoute` enforces from ≠ to, both present, and from before to.
@@ -62,9 +66,11 @@ binding, do it in `AppServiceProvider` (currently empty).
 - `TripSeatService` — static methods. `checkSeatReservations($seatId, $neededCities)` is the core
   availability rule: returns true (seat free) only if the seat has **no** `reservations_stops` row
   whose `city_id` is in the requested leg. This is what lets one seat be resold on disjoint legs.
-- `ReservationService::bookSeat` — validates seat↔trip, recomputes the leg, re-checks availability,
-  then in a DB transaction inserts one `customers_seats_reservations` row plus one
-  `reservations_stops` row per leg city. Returns bool.
+- `ReservationService::bookSeat` — validates seat↔trip, recomputes the leg, then in a DB transaction
+  takes `lockForUpdate()` on the `TripSeat` row, re-checks availability, and inserts one
+  `customers_seats_reservations` row plus one `reservations_stops` row per leg city. The unique
+  `(seat_id, city_id)` index on `reservations_stops` is the backstop for concurrent first-insert races;
+  a `QueryException` is treated as "seat taken" and returns false. Returns bool.
 
 ### Seat generation via observer
 `TripObserver::created` — wired by the `#[ObservedBy(TripObserver::class)]` attribute on the `Trip`
@@ -77,16 +83,18 @@ observer handles it, so tests read `$trip->seats` right after `Trip::factory()->
 `cities` — station names. `buses` — `name`, `seats_capacity`. `trips` — `name`, `bus_id`.
 `trips_stations` — `trip_id`, `city_id`, `station_order` (route as ordered rows).
 `trips_seats` — one row per physical seat on a trip (`trip_id` only; the id is the "unique seat id").
-`customers_seats_reservations` (model `Reservations`) — `user_id`, `seat_id`.
-`reservations_stops` (model `ReservationsStop`) — `reservation_id`, `city_id`; one row per leg city
-of a reservation. Availability queries join these two tables.
+`customers_seats_reservations` (model `Reservation`) — `user_id`, `seat_id`.
+`reservations_stops` (model `ReservationStop`) — `reservation_id`, `seat_id`, `city_id`; one row per
+leg city of a reservation, with a unique `(seat_id, city_id)` index. Availability queries join these two tables.
 Passport `oauth_*` tables come from the published migrations in `database/migrations/`.
 
 ## Testing notes
 - PHPUnit 12. Test DB is **sqlite `:memory:`** (see `phpunit.xml`) — `php artisan test` needs no
   running MySQL. Production/dev still runs MySQL via Sail.
 - Every Feature test uses `RefreshDatabase`. Services are exercised directly; `ReservationsTest`
-  builds its service in `setUp()`.
+  resolves its service from the container in `setUp()`.
+- `tests/Concerns/BuildsTrips::makeTrip(['Cairo','AlMinya','Asyut'], $capacity)` builds a trip with
+  ordered stations and returns `[Trip, cities keyed by name]`; reuse it instead of hand-building routes.
 - `tests/Feature/Auth/*` are the Breeze v2 auth tests.
 
 ===
